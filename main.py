@@ -2,6 +2,7 @@
 from functools import wraps
 from typing import Union, List
 import subprocess
+from threading import Thread
 
 import telebot
 
@@ -15,7 +16,8 @@ bot = telebot.TeleBot(bot_token)
 def run_command_and_notify(message: telebot.types.Message, args: Union[str, List[str]], *,
                            expect_quick: bool = False, shell: bool = False):
     """
-    Runs a command (either in the shell mode or not) and reports the results to the user.
+    Creates and starts a new thread, that runs the given command (either in the shell mode or not) and
+    reports the results to the user.
 
     @param message: Telegram bot message to reply to
     @param args: String or list of arguments to be executed.
@@ -25,22 +27,31 @@ def run_command_and_notify(message: telebot.types.Message, args: Union[str, List
         but not yet finished.
     @param shell: (optional, default `False`) Whether to run in shell
     """
-    p = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    def f():
+        p = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
 
-    if not expect_quick:
-        sent_message = bot.reply_to(message, "Executing...")
+        if not expect_quick:
+            sent_message = bot.reply_to(message, "Executing...")
 
-    out, err = map(try_decode, p.communicate())
-    reply_text = "Done\\. Output:\n"  # '.' must be escaped in MarkdownV2
-    if out:
-        reply_text += "stdout:\n```\n" + escape(out, ['\\', '`']) + "\n```\n"
-    if err:
-        reply_text += "stderr:\n```\n" + escape(err, ['\\', '`']) + "\n```\n"
-    reply_text += f"Exit code: {p.returncode}"
+        out, err = map(try_decode, p.communicate())
+        reply_text = "Done\\. Output:\n"  # '.' must be escaped in MarkdownV2
+        if out:
+            reply_text += "stdout:\n```\n" + escape(out, ['\\', '`']) + "\n```\n"
+        if err:
+            reply_text += "stderr:\n```\n" + escape(err, ['\\', '`']) + "\n```\n"
+        reply_text += f"Exit code: {p.returncode}"
 
-    bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
-    if not expect_quick:
-        bot.delete_message(message.chat.id, sent_message.message_id)
+        try:
+            bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
+        except telebot.apihelper.ApiTelegramException as e:
+            bot.reply_to(message, f"The command has completed, but I failed to send the response:\n{e}")
+        if not expect_quick:
+            # Sending a new message and deleting the old one instead of editing because running a command may
+            # take a long time and we want to notify user when it's over
+            bot.delete_message(message.chat.id, sent_message.message_id)
+
+    Thread(target=f, daemon=True).start()  # Do all of it in the background
 
 
 # Decorator that prevents the actions when executed by a non-admin user.
@@ -78,7 +89,7 @@ def help(message: telebot.types.Message):
                     "ARGS. The string is interpreted as raw (i.e. quotes and backslash-escaping are not "
                     "supported)\n\n"
                  "/shell STRING - execute STRING in a shell\n\n"
-                 "/shutdown - Stop this bot. "
+                 "/shutdown - Stop this bot. Currently running child processes won't be killed. "
                     "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
                     "not just the admins. Uncomment a line in the source code to prevent this behavior",
                  parse_mode="Markdown"
@@ -115,4 +126,4 @@ def shutdown(message):
 
 
 if __name__ == "__main__":
-    bot.polling(non_stop=False)
+    bot.polling(non_stop=True)
