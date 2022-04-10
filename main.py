@@ -4,8 +4,12 @@ from typing import Union, List
 import subprocess
 from threading import Thread #, Timer
 import shlex
+from time import sleep
+from sys import stderr
+from traceback import format_exc
 
 import telebot
+from requests.exceptions import RequestException
 
 from util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
 from config import bot_token, admins_ids
@@ -154,4 +158,13 @@ def unknown(message):
 
 
 if __name__ == "__main__":
-    bot.polling(non_stop=True)
+    while True:
+        try:
+            bot.polling(non_stop=True)
+            break  # If successfully stopped polling, should not retry
+        except RequestException:
+            # If internet connection issue, wait a little and restart
+            print("Having internet connection issues. Retrying in 3 seconds...", file=stderr)
+            print(format_exc(), file=stderr)
+            sleep(3)
+            print("Restarted\n", file=stderr)
