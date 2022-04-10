@@ -77,7 +77,10 @@ def help(message: telebot.types.Message):
                  "/exec\_raw COMMAND ARGS - execute COMMAND with command-line whitespace-separated arguments "
                     "ARGS. The string is interpreted as raw (i.e. quotes and backslash-escaping are not "
                     "supported)\n\n"
-                 "/shell STRING - execute STRING in a shell",
+                 "/shell STRING - execute STRING in a shell\n\n"
+                 "/shutdown - Stop this bot. "
+                    "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
+                    "not just the admins. Uncomment a line in the source code to prevent this behavior",
                  parse_mode="Markdown"
     )
 
@@ -104,6 +107,11 @@ def exec_raw(message):
 def shell(message):
     command = message.text[7:]
     run_command_and_notify(message, command, shell=True)
+
+@bot.message_handler(commands=['shutdown'])
+#@admins_only_handler  # WARNING: with this line commented out ANYONE can shut the bot down
+def shutdown(message):
+    bot.stop_polling()
 
 
 if __name__ == "__main__":
