@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 
 def escape(where: str, what: List[str]):
@@ -13,3 +13,21 @@ def try_decode_otherwise_repr(s: bytes) -> str:
         return s.decode()
     except UnicodeDecodeError:
         return repr(s)
+
+
+def cmd_get_action(s: Optional[str]) -> Optional[str]:
+    """
+    Extract action from the command string with optional leading slash
+    """
+    if s:
+        cmd = s.split()[0]
+        if cmd[0] == '/':
+            cmd = cmd[1:]
+        return cmd.lower()
+
+def cmd_get_rest(s: str) -> str:
+    """
+    Cuts the first word of the string and the first whitespace symbol
+    after it, returns the rest
+    """
+    return s[len(s.split()[0])+1:]

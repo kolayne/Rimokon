@@ -7,7 +7,7 @@ import shlex
 
 import telebot
 
-from util import escape, try_decode_otherwise_repr as try_decode
+from util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
 from config import bot_token, admins_ids
 
 
@@ -68,7 +68,7 @@ def admins_only_handler(original_handler):
         return handler
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'start')
 def start(message: telebot.types.Message):
     bot.reply_to(message,
                  "Hello! I am リモコン (pronounced \"rimokon\", japanese for \"remote control\") "
@@ -76,7 +76,7 @@ def start(message: telebot.types.Message):
                  "learn more"
     )
 
-@bot.message_handler(commands=['help'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'help')
 @admins_only_handler
 def help(message: telebot.types.Message):
     bot.reply_to(message,
@@ -88,48 +88,57 @@ def help(message: telebot.types.Message):
                  "`ctrl+w`)\n\n"
                  "/exec COMMAND ARGS - execute COMMAND with command-line whitespace-separated arguments "
                      "ARGS. Arguments containing spaces can be quoted or escaped with backslashes.\n\n"
-                 "/exec\\_raw COMMAND ARGS - similar to /exec, but escaping and quoting are not supported, "
+                 "/execraw COMMAND ARGS - similar to /exec, but escaping and quoting are not supported, "
                     "the string is interpreted as raw\n\n"
                  "/shell STRING - execute STRING in a shell\n\n"
-                 "/shutdown - Stop this bot. Currently running child processes won't be killed. "
+                 "!SHUTDOWN - Stop this bot. Currently running child processes won't be killed. "
+                    "Punctuation and case matter. "
                     "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
-                    "not just the admins. Uncomment a line in the source code to prevent this behavior",
+                    "not just the admins. Uncomment a line in the source code to prevent this behavior\n\n"
+                 "Note: leading slashes can be omitted in all of the above commands, case does not matter. "
+                 "The `!SHUTDOWN` command is the exception: it must be typed exactly like that",
                  parse_mode="Markdown"
     )
 
-@bot.message_handler(commands=['type'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'type')
 @admins_only_handler
 def type(message):
-    text_to_type = message.text[6:]
+    text_to_type = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'type', text_to_type], expect_quick=True)
 
-@bot.message_handler(commands=['key'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'key')
 @admins_only_handler
 def key(message):
-    key_name = message.text[5:]
+    key_name = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
 
-@bot.message_handler(commands=['exec', 'exec_raw'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['exec', 'execraw'])
 @admins_only_handler
-def exec_raw(message):
-    action = message.text.split()[0]
-    command = message.text[len(action)+1:]
-    if action == '/exec_raw':
-        command = command.split()
-    else:  # `action == '/exec'`
-        command = shlex.split(command)
-    run_command_and_notify(message, command)
+def exec_exec_raw(message):
+    action = cmd_get_action(message.text)
+    to_exec = cmd_get_rest(message.text)
+    if action == 'exec':
+        to_exec = shlex.split(to_exec)
+    elif action == 'execraw':
+        to_exec = to_exec.split()
+    else:
+        assert False, "Neither /exec, nor /execraw. How is that possible?"
+    run_command_and_notify(message, to_exec)
 
-@bot.message_handler(commands=['shell'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'shell')
 @admins_only_handler
 def shell(message):
-    command = message.text[7:]
-    run_command_and_notify(message, command, shell=True)
+    to_exec = cmd_get_rest(message.text)
+    run_command_and_notify(message, to_exec, shell=True)
 
-@bot.message_handler(commands=['shutdown'])
+@bot.message_handler(func=lambda message: message.text == '!SHUTDOWN')
 #@admins_only_handler  # WARNING: with this line commented out ANYONE can shut the bot down
 def shutdown(message):
     bot.stop_polling()
+
+@bot.message_handler(func=lambda message: True)
+def unknown(message):
+    bot.reply_to(message, "Unknown command")
 
 
 if __name__ == "__main__":
