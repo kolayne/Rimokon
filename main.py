@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Union, List
 import subprocess
 from threading import Thread
+import shlex
 
 import telebot
 
@@ -85,9 +86,10 @@ def help(message: telebot.types.Message):
                     "command name. For example, to type `' 1'` you would run `/type  1`\n\n"
                  "/key KEY_NAME - (xdotool) Press the key KEY_NAME on keyboard (can be a shortcut, e.g. "
                  "`ctrl+w`)\n\n"
-                 "/exec\_raw COMMAND ARGS - execute COMMAND with command-line whitespace-separated arguments "
-                    "ARGS. The string is interpreted as raw (i.e. quotes and backslash-escaping are not "
-                    "supported)\n\n"
+                 "/exec COMMAND ARGS - execute COMMAND with command-line whitespace-separated arguments "
+                     "ARGS. Arguments containing spaces can be quoted or escaped with backslashes.\n\n"
+                 "/exec\\_raw COMMAND ARGS - similar to /exec, but escaping and quoting are not supported, "
+                    "the string is interpreted as raw\n\n"
                  "/shell STRING - execute STRING in a shell\n\n"
                  "/shutdown - Stop this bot. Currently running child processes won't be killed. "
                     "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
@@ -107,11 +109,16 @@ def key(message):
     key_name = message.text[5:]
     run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
 
-@bot.message_handler(commands=['exec_raw'])
+@bot.message_handler(commands=['exec', 'exec_raw'])
 @admins_only_handler
 def exec_raw(message):
-    command = message.text[10:]
-    run_command_and_notify(message, command.split())
+    action = message.text.split()[0]
+    command = message.text[len(action)+1:]
+    if action == '/exec_raw':
+        command = command.split()
+    else:  # `action == '/exec'`
+        command = shlex.split(command)
+    run_command_and_notify(message, command)
 
 @bot.message_handler(commands=['shell'])
 @admins_only_handler
