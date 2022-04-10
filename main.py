@@ -5,6 +5,7 @@ import subprocess
 
 import telebot
 
+from util import escape, try_decode_otherwise_repr as try_decode
 from config import bot_token, admins_ids
 
 
@@ -25,16 +26,19 @@ def run_command_and_notify(message: telebot.types.Message, args: Union[str, List
     @param shell: (optional, default `False`) Whether to run in shell
     """
     p = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     if not expect_quick:
         sent_message = bot.reply_to(message, "Executing...")
-    out, err = p.communicate()
-    reply_text = "Done. Output:\n"
+
+    out, err = map(try_decode, p.communicate())
+    reply_text = "Done\\. Output:\n"  # '.' must be escaped in MarkdownV2
     if out:
-        reply_text += "stdout:\n```\n" + out.decode('utf-8') + "\n```\n"
+        reply_text += "stdout:\n```\n" + escape(out, ['\\', '`']) + "\n```\n"
     if err:
-        reply_text += "stderr:\n```\n" + err.decode('utf-8') + "\n```\n"
+        reply_text += "stderr:\n```\n" + escape(err, ['\\', '`']) + "\n```\n"
     reply_text += f"Exit code: {p.returncode}"
-    bot.reply_to(message, reply_text, parse_mode="Markdown")
+
+    bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
     if not expect_quick:
         bot.delete_message(message.chat.id, sent_message.message_id)
 
