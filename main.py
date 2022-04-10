@@ -80,24 +80,22 @@ def start(message: telebot.types.Message):
 @admins_only_handler
 def help(message: telebot.types.Message):
     bot.reply_to(message,
-                 "Hello. I currently have the following commands:\n\n"
-                 "/type STRING - (xdotool) Type STRING on keyboard. All the characters, including "
-                    "whitespaces, are taken into account, skipping one character (space or newline) after the "
-                    "command name. For example, to type `' 1'` you would run `/type  1`\n\n"
-                 "/key KEY_NAME - (xdotool) Press the key KEY_NAME on keyboard (can be a shortcut, e.g. "
-                 "`ctrl+w`)\n\n"
-                 "/exec COMMAND ARGS - execute COMMAND with command-line whitespace-separated arguments "
-                     "ARGS. Arguments containing spaces can be quoted or escaped with backslashes.\n\n"
-                 "/execraw COMMAND ARGS - similar to /exec, but escaping and quoting are not supported, "
+                 "Hello\\. I currently have the following commands:\n\n"
+                 "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
+                 "*\\(\\*\\)* /key _KEYS_ \\- Generate keypress event for key \\(e\\.g\\. `space`\\) or "
+                    "shortcut \\(e\\.g\\. `ctrl+w`\\)\n\n"
+                 "/exec _COMMAND ARGS_ \\- execute _COMMAND_ with command\\-line whitespace\\-sparated "
+                    "arguments _ARGS_\\. Arguments can be quoted and escaped with backslashes\n\n"
+                 "/rawexec _COMMAND ARGS_ \\- similar to /exec, but escaping and quoting are not supported, "
                     "the string is interpreted as raw\n\n"
-                 "/shell STRING - execute STRING in a shell\n\n"
-                 "!SHUTDOWN - Stop this bot. Currently running child processes won't be killed. "
-                    "Punctuation and case matter. "
+                 "/shell _STRING_ \\- execute _STRING_ in a shell\n\n"
+                 "`!SHUTDOWN` \\- Stop this bot\\. Already running child processes won't be killed\\. "
                     "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
-                    "not just the admins. Uncomment a line in the source code to prevent this behavior\n\n"
-                 "Note: leading slashes can be omitted in all of the above commands, case does not matter. "
-                 "The `!SHUTDOWN` command is the exception: it must be typed exactly like that",
-                 parse_mode="Markdown"
+                    "not just the admins\\. Uncomment a line in the source code to prevent this behavior\n\n"
+                 "*\\(\\*\\)* These commands only work with `xdotool` \n\n"
+                 "Note: leading slashes can be omitted in all of the above commands, case does not matter\\. "
+                 "The `!SHUTDOWN` command is an exception: it must be typed exactly like that",
+                 parse_mode="MarkdownV2"
     )
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'type')
@@ -112,17 +110,17 @@ def key(message):
     key_name = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['exec', 'execraw'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['exec', 'rawexec'])
 @admins_only_handler
-def exec_exec_raw(message):
+def exec_raw_exec(message):
     action = cmd_get_action(message.text)
     to_exec = cmd_get_rest(message.text)
     if action == 'exec':
         to_exec = shlex.split(to_exec)
-    elif action == 'execraw':
+    elif action == 'rawexec':
         to_exec = to_exec.split()
     else:
-        assert False, "Neither /exec, nor /execraw. How is that possible?"
+        assert False, "Neither /exec, nor /rawexec. How is that possible?"
     run_command_and_notify(message, to_exec)
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'shell')
