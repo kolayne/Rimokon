@@ -2,7 +2,7 @@
 from functools import wraps
 from typing import Union, List
 import subprocess
-from threading import Thread
+from threading import Thread #, Timer
 import shlex
 
 import telebot
@@ -116,7 +116,11 @@ def exec_raw_exec(message):
     action = cmd_get_action(message.text)
     to_exec = cmd_get_rest(message.text)
     if action == 'exec':
-        to_exec = shlex.split(to_exec)
+        try:
+            to_exec = shlex.split(to_exec)
+        except ValueError as e:
+            bot.reply_to(message, f"Failed:\n{e}")
+            return
     elif action == 'rawexec':
         to_exec = to_exec.split()
     else:
@@ -132,7 +136,17 @@ def shell(message):
 @bot.message_handler(func=lambda message: message.text == '!SHUTDOWN')
 #@admins_only_handler  # WARNING: with this line commented out ANYONE can shut the bot down
 def shutdown(message):
+    # Default behavior: stop polling immediately, but the shutdown command might remain in
+    # the unprocessed messages on Telegram side, so unless you run after_shutdown.py,
+    # the bot might receive this command again when you start it next time.
     bot.stop_polling()
+
+    # Alternative behavior (don't forget to import `threading.Timer`):
+    # stop the bot after a small timeout. This will make sure that the shutdown command is
+    # processed and the bot won't receive it again, however, it is theoretically less safe:
+    # there is a chance that a malicious command will arrive in the one tenth of a second
+    # interval.
+    #Timer(0.1, bot.stop_polling).start()
 
 @bot.message_handler(func=lambda message: True)
 def unknown(message):
