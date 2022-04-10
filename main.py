@@ -58,7 +58,7 @@ def start(message: telebot.types.Message):
                  "Hello! I am リモコン (pronounced \"rimokon\", japanese for \"remote control\") "
                  "and I let my admins control the device I am running on. Click /help to "
                  "learn more"
-                 )
+    )
 
 @bot.message_handler(commands=['help'])
 @admins_only_handler
@@ -69,9 +69,13 @@ def help(message: telebot.types.Message):
                     "whitespaces, are taken into account, skipping one character (space or newline) after the "
                     "command name. For example, to type `' 1'` you would run `/type  1`\n\n"
                  "/key KEY_NAME - (xdotool) Press the key KEY_NAME on keyboard (can be a shortcut, e.g. "
-                 "`ctrl+w`)\n\n",
+                 "`ctrl+w`)\n\n"
+                 "/exec\_raw COMMAND ARGS - execute COMMAND with command-line whitespace-separated arguments "
+                    "ARGS. The string is interpreted as raw (i.e. quotes and backslash-escaping are not "
+                    "supported)\n\n"
+                 "/shell STRING - execute STRING in a shell",
                  parse_mode="Markdown"
-                 )
+    )
 
 @bot.message_handler(commands=['type'])
 @admins_only_handler
@@ -84,6 +88,18 @@ def type(message):
 def key(message):
     key_name = message.text[5:]
     run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
+
+@bot.message_handler(commands=['exec_raw'])
+@admins_only_handler
+def exec_raw(message):
+    command = message.text[10:]
+    run_command_and_notify(message, command.split())
+
+@bot.message_handler(commands=['shell'])
+@admins_only_handler
+def shell(message):
+    command = message.text[7:]
+    run_command_and_notify(message, command, shell=True)
 
 
 if __name__ == "__main__":
