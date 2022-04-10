@@ -1,0 +1,2 @@
+bot_token = '123456:ABCDEFGHI'  # Telegram bot token from @BotFather
+admins_ids = [123, 456]  # List of Telegram user identifiers (integers). Find via @myidbot
