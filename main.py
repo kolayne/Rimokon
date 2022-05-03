@@ -33,28 +33,31 @@ def run_command_and_notify(message: telebot.types.Message, args: Union[str, List
     @param shell: (optional, default `False`) Whether to run in shell
     """
     def f():
-        p = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-
-        if not expect_quick:
-            sent_message = bot.reply_to(message, "Executing...")
-
-        out, err = map(try_decode, p.communicate())
-        reply_text = "Done\\. Output:\n"  # '.' must be escaped in MarkdownV2
-        if out:
-            reply_text += "stdout:\n```\n" + escape(out, ['\\', '`']) + "\n```\n"
-        if err:
-            reply_text += "stderr:\n```\n" + escape(err, ['\\', '`']) + "\n```\n"
-        reply_text += f"Exit code: {p.returncode}"
-
         try:
-            bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
-        except telebot.apihelper.ApiTelegramException as e:
-            bot.reply_to(message, f"The command has completed, but I failed to send the response:\n{e}")
-        if not expect_quick:
-            # Sending a new message and deleting the old one instead of editing because running a command may
-            # take a long time and we want to notify user when it's over
-            bot.delete_message(message.chat.id, sent_message.message_id)
+            p = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+
+            if not expect_quick:
+                sent_message = bot.reply_to(message, "Executing...")
+
+            out, err = map(try_decode, p.communicate())
+            reply_text = "Done\\. Output:\n"  # '.' must be escaped in MarkdownV2
+            if out:
+                reply_text += "stdout:\n```\n" + escape(out, ['\\', '`']) + "\n```\n"
+            if err:
+                reply_text += "stderr:\n```\n" + escape(err, ['\\', '`']) + "\n```\n"
+            reply_text += f"Exit code: {p.returncode}"
+
+            try:
+                bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
+            except telebot.apihelper.ApiTelegramException as e:
+                bot.reply_to(message, f"The command has completed, but I failed to send the response:\n{e}")
+            if not expect_quick:
+                # Sending a new message and deleting the old one instead of editing because running a command may
+                # take a long time and we want to notify user when it's over
+                bot.delete_message(message.chat.id, sent_message.message_id)
+        except Exception as e:
+            bot.reply_to(message, f"Something went wrong while processing your request:\n{e}")
 
     Thread(target=f, daemon=True).start()  # Do all of it in the background
 
