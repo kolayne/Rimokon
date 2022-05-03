@@ -45,6 +45,11 @@ Supported commands (leading slash can be omitted, lower/upper case do not matter
 - `/type <STRING>` (**Xorg only**) - Type the given text on the keyboard through
   keyboard events.
 
+- `/screen` (**Windows, macOS or Xorg**) - Take a screenshot and send it as a Telegram
+  photo.
+
+- `/screenf` (-||-) - Just like `/screen`, but sends the screenshot as a document.
+
 - `/exec <COMMAND & ARGS SHELL-STYLE>` - run the command without shell but with
   shell-style arguments splitting (quoting and escaping is supported)
 
