@@ -13,6 +13,10 @@ from requests.exceptions import RequestException
 
 from util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
 from config import bot_token, admins_ids
+try:
+    from config import quick_access_cmds
+except ImportError:
+    quick_access_cmds = []
 
 
 bot = telebot.TeleBot(bot_token)
@@ -74,10 +78,17 @@ def admins_only_handler(original_handler):
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'start')
 def start(message: telebot.types.Message):
+    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    # `quick_access_cmds` should be an array of arrays of strings, the latter arrays represent lines
+    # of buttons
+    for line in quick_access_cmds:
+        keyboard.add(*line)
+
     bot.reply_to(message,
                  "Hello! I am リモコン (pronounced \"rimokon\", japanese for \"remote control\") "
                  "and I let my admins control the device I am running on. Click /help to "
-                 "learn more"
+                 "learn more",
+                 reply_markup=keyboard
     )
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'help')

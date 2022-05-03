@@ -1,2 +1,8 @@
 bot_token = '123456:ABCDEFGHI'  # Telegram bot token from @BotFather
 admins_ids = [123, 456]  # List of Telegram user identifiers (integers). Find via @myidbot
+
+# `quick_access_cmds` specifies keyboard buttons that can be used for frequently used commands.
+# It is an array, where each array represents a keyboard line and consists of strings that are commands.
+# `quick_access_cmds` can be empty and omitted, but arrays in it or strings in them must not be empty.
+# After updating `quick_access_cmds`, restart the bot and run `/start` to refresh the keyboard in Telegram.
+quick_access_cmds = [['/key space', '/type Hello, World!'], ['/type This will appear on second line']]
