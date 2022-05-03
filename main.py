@@ -82,7 +82,7 @@ def start(message: telebot.types.Message):
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'help')
 @admins_only_handler
-def help(message: telebot.types.Message):
+def help_(message: telebot.types.Message):
     bot.reply_to(message,
                  "Hello\\. I currently have the following commands:\n\n"
                  "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
@@ -104,7 +104,7 @@ def help(message: telebot.types.Message):
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'type')
 @admins_only_handler
-def type(message):
+def type_(message):
     text_to_type = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'type', text_to_type], expect_quick=True)
 
@@ -123,7 +123,7 @@ def run_raw_run(message):
         try:
             to_run = shlex.split(to_run)
         except ValueError as e:
-            bot.reply_to(message, f"Failed:\n{e}")
+            bot.reply_to(message, f"Failed to parse arguments:\n{e}")
             return
     elif action == 'rawrun':
         to_run = to_run.split()
