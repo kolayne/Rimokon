@@ -45,13 +45,16 @@ Supported commands (leading slash can be omitted, lower/upper case do not matter
 - `/type <STRING>` (**Xorg only**) - Type the given text on the keyboard through
   keyboard events.
 
-- `/exec <COMMAND & ARGS SHELL-STYLE>` - run the command without shell but with
+- `/run <COMMAND & ARGS SHELL-STYLE>` - run the command without shell but with
   shell-style arguments splitting (quoting and escaping is supported)
 
-- `/rawexec <COMMAND & ARGS WHITESPACE-SEPARATED>` - run the command without shell
+- `/rawrun <COMMAND & ARGS WHITESPACE-SEPARATED>` - run the command without shell
   and split it by whitespaces, ignoring quotes and backslashes
 
 - `/shell <SHELL COMMAND>` - run the command in shell.
+
+Note: `/exec` and `/rawexec` are synonyms for `/run` and `/rawrun` respectively (for
+backward compatibility).
 
 ## Security
 

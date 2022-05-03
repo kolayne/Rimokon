@@ -88,9 +88,9 @@ def help(message: telebot.types.Message):
                  "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
                  "*\\(\\*\\)* /key _KEYS_ \\- Generate keypress event for key \\(e\\.g\\. `space`\\) or "
                     "shortcut \\(e\\.g\\. `ctrl+w`\\)\n\n"
-                 "/exec _COMMAND ARGS_ \\- execute _COMMAND_ with command\\-line whitespace\\-sparated "
+                 "/run _COMMAND ARGS_ \\- execute _COMMAND_ with command\\-line whitespace\\-sparated "
                     "arguments _ARGS_\\. Arguments can be quoted and escaped with backslashes\n\n"
-                 "/rawexec _COMMAND ARGS_ \\- similar to /exec, but escaping and quoting are not supported, "
+                 "/rawrun _COMMAND ARGS_ \\- similar to /run, but escaping and quoting are not supported, "
                     "the string is interpreted as raw\n\n"
                  "/shell _STRING_ \\- execute _STRING_ in a shell\n\n"
                  "`!SHUTDOWN` \\- Stop this bot\\. Already running child processes won't be killed\\. "
@@ -114,28 +114,28 @@ def key(message):
     key_name = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['exec', 'rawexec'])
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['run', 'rawrun', 'exec', 'rawexec'])
 @admins_only_handler
-def exec_raw_exec(message):
-    action = cmd_get_action(message.text)
-    to_exec = cmd_get_rest(message.text)
-    if action == 'exec':
+def run_raw_run(message):
+    action = cmd_get_action(message.text).replace('exec', 'run')
+    to_run = cmd_get_rest(message.text)
+    if action == 'run':
         try:
-            to_exec = shlex.split(to_exec)
+            to_run = shlex.split(to_run)
         except ValueError as e:
             bot.reply_to(message, f"Failed:\n{e}")
             return
-    elif action == 'rawexec':
-        to_exec = to_exec.split()
+    elif action == 'rawrun':
+        to_run = to_run.split()
     else:
-        assert False, "Neither /exec, nor /rawexec. How is that possible?"
-    run_command_and_notify(message, to_exec)
+        assert False, "Neither /run, nor /rawrun. How is that possible?"
+    run_command_and_notify(message, to_run)
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'shell')
 @admins_only_handler
 def shell(message):
-    to_exec = cmd_get_rest(message.text)
-    run_command_and_notify(message, to_exec, shell=True)
+    to_run = cmd_get_rest(message.text)
+    run_command_and_notify(message, to_run, shell=True)
 
 @bot.message_handler(func=lambda message: message.text == '!SHUTDOWN')
 #@admins_only_handler  # WARNING: with this line commented out ANYONE can shut the bot down
