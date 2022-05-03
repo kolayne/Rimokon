@@ -86,8 +86,10 @@ def help(message: telebot.types.Message):
     bot.reply_to(message,
                  "Hello\\. I currently have the following commands:\n\n"
                  "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
-                 "*\\(\\*\\)* /key _KEYS_ \\- Generate keypress event for key \\(e\\.g\\. `space`\\) or "
-                    "shortcut \\(e\\.g\\. `ctrl+w`\\)\n\n"
+                 "*\\(\\*\\)* /key \\[_ARGS_\\] _KEYS_ \\[_KEYS_\\.\\.\\.\\] \\- Generate keypress event for "
+                 "key \\(e\\.g\\. `space`\\), shortcut \\(e\\.g\\. `ctrl+w`\\), or a sequence of them "
+                 "\\(separated with spaces, e\\.g\\. `ctrl+w space`\\). Additional arguments are forwarded "
+                 "to `xdotool key`\n\n"
                  "/exec _COMMAND ARGS_ \\- execute _COMMAND_ with command\\-line whitespace\\-sparated "
                     "arguments _ARGS_\\. Arguments can be quoted and escaped with backslashes\n\n"
                  "/rawexec _COMMAND ARGS_ \\- similar to /exec, but escaping and quoting are not supported, "
@@ -111,8 +113,8 @@ def type(message):
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'key')
 @admins_only_handler
 def key(message):
-    key_name = cmd_get_rest(message.text)
-    run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
+    xdotool_key_args = cmd_get_rest(message.text).split()
+    run_command_and_notify(message, ['xdotool', 'key'] + xdotool_key_args, expect_quick=True)
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['exec', 'rawexec'])
 @admins_only_handler

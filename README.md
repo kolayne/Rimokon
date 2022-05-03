@@ -38,7 +38,8 @@ Supported commands (leading slash can be omitted, lower/upper case do not matter
 
 - `/help` - List available commands (you can find details there)
 
-- `/key <KEYS>` (**Xorg only**) - Generate keypress event for a key or a shortcut.
+- `/key [<ARGS>] <KEYS> [<KEYS>...]` (**Xorg only**) - Generate keypress event for a key,
+  a shortcut, or a sequence of them. Additional arguments are forwarded to `xdotool key`.
   `<KEYS>` should be a valid `xdotool` keysequence (case matters). Refer to
   `xdotool`'s list of keycodes for details.
 
