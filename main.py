@@ -7,6 +7,8 @@ import shlex
 from time import sleep
 from sys import stderr
 from traceback import format_exc
+from PIL import ImageGrab
+from io import BytesIO
 
 import telebot
 from requests.exceptions import RequestException
@@ -91,6 +93,8 @@ def help_(message: telebot.types.Message):
                  "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
                  "*\\(\\*\\)* /key _KEYS_ \\- Generate keypress event for key \\(e\\.g\\. `space`\\) or "
                     "shortcut \\(e\\.g\\. `ctrl+w`\\)\n\n"
+                 "*\\(\\*\\*\\)* /screen \\- Capture screen and send the screenshot as a photo\n\n"
+                 "*\\(\\*\\*\\)* /screenf \\- Capture screen and send the screenshot as a document\n\n"
                  "/run _COMMAND ARGS_ \\- execute _COMMAND_ with command\\-line whitespace\\-sparated "
                     "arguments _ARGS_\\. Arguments can be quoted and escaped with backslashes\n\n"
                  "/rawrun _COMMAND ARGS_ \\- similar to /run, but escaping and quoting are not supported, "
@@ -100,6 +104,7 @@ def help_(message: telebot.types.Message):
                     "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
                     "not just the admins\\. Uncomment a line in the source code to prevent this behavior\n\n"
                  "*\\(\\*\\)* These commands only work with `xdotool` \n\n"
+                 "*\\(\\*\\*\\)* These commands are guaranteed to work on Windows, macOS or Linux with X11\n\n"
                  "Note: leading slashes can be omitted in all of the above commands, case does not matter\\. "
                  "The `!SHUTDOWN` command is an exception: it must be typed exactly like that",
                  parse_mode="MarkdownV2"
@@ -116,6 +121,23 @@ def type_(message):
 def key(message):
     key_name = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'key', key_name], expect_quick=True)
+
+@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['screen', 'screenf'])
+@admins_only_handler
+def screen(message):
+    try:
+        screenshot = ImageGrab.grab()
+    except OSError as e:
+        bot.reply_to(message, f"Error: your machine does not support this feature:\n{e}")
+        return
+    img = BytesIO()
+    img.name = 'i.png'
+    screenshot.save(img, 'PNG')
+    img.seek(0)
+    if cmd_get_action(message.text).endswith('f'):
+        bot.send_document(message.chat.id, img, reply_to_message_id=message.message_id)
+    else:
+        bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['run', 'rawrun', 'exec', 'rawexec'])
 @admins_only_handler
