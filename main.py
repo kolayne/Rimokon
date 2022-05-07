@@ -104,7 +104,7 @@ def help_(message: telebot.types.Message):
                  "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
                  "*\\(\\*\\)* /key \\[_ARGS_\\] _KEYS_ \\[_KEYS_\\.\\.\\.\\] \\- Generate keypress event for "
                  "key \\(e\\.g\\. `space`\\), shortcut \\(e\\.g\\. `ctrl+w`\\), or a sequence of them "
-                 "\\(separated with spaces, e\\.g\\. `ctrl+w space`\\). Additional arguments are forwarded "
+                 "\\(separated with spaces, e\\.g\\. `ctrl+w space`\\)\\. Additional arguments are forwarded "
                  "to `xdotool key`\n\n"
                  "*\\(\\*\\*\\)* /screen \\- Capture screen and send the screenshot as a photo\n\n"
                  "*\\(\\*\\*\\)* /screenf \\- Capture screen and send the screenshot as a document\n\n"
