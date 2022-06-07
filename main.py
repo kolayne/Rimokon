@@ -178,6 +178,8 @@ def shell(message):
 @bot.message_handler(func=lambda message: message.text == '!SHUTDOWN')
 #@admins_only_handler  # WARNING: with this line commented out ANYONE can shut the bot down
 def shutdown(message):
+    print("Stopping due to '!SHUTDOWN' received", flush=True)
+
     # Default behavior: stop polling immediately, but the shutdown command might remain in
     # the unprocessed messages on Telegram side, so unless you run after_shutdown.py,
     # the bot might receive this command again when you start it next time.

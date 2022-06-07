@@ -34,7 +34,7 @@ and get a token [@BotFather](https://t.me/BotFather) and get your telegram user 
 To start the bot, start `main.py`.
 
 Supported commands (leading slash can be omitted, lower/upper case do not matter):
-- `/start` - Start the bot
+- `/start` - Start the bot, update keyboard on Telegram side
 
 - `/help` - List available commands (you can find details there)
 
