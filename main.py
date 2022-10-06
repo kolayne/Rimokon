@@ -57,7 +57,8 @@ def run_command_and_notify(message: telebot.types.Message, args: Union[str, List
             try:
                 bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
             except telebot.apihelper.ApiTelegramException as e:
-                bot.reply_to(message, f"The command has completed, but I failed to send the response:\n{e}")
+                bot.reply_to(message, f"The command has completed with code {p.returncode}, but I failed "
+                                      f"to send the response:\n{e}")
             if not expect_quick:
                 # Sending a new message and deleting the old one instead of editing because running a command may
                 # take a long time and we want to notify user when it's over
