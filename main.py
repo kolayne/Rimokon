@@ -14,7 +14,7 @@ import telebot
 from requests.exceptions import RequestException
 
 from util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
-from config import bot_token, admins_ids
+from config import bot_token, admins_ids, emergency_shutdown_command, emergency_shutdown_public
 try:
     from config import quick_access_cmds
 except ImportError:
@@ -114,13 +114,11 @@ def help_(message: telebot.types.Message):
                  "/rawrun _COMMAND ARGS_ \\- similar to /run, but escaping and quoting are not supported, "
                     "the string is interpreted as raw\n\n"
                  "/shell _STRING_ \\- execute _STRING_ in a shell\n\n"
-                 "`!SHUTDOWN` \\- Stop this bot\\. Already running child processes won't be killed\\. "
-                    "WARNING: for security reasons, by default, this command can be executed by ANY USER, "
-                    "not just the admins\\. Uncomment a line in the source code to prevent this behavior\n\n"
+                 "The emergency shutdown command that you have set in the config file will terminate the "
+                    "bot\\.\n\n"
                  "*\\(\\*\\)* These commands only work with `xdotool` \n\n"
                  "*\\(\\*\\*\\)* These commands are guaranteed to work on Windows, macOS or Linux with X11\n\n"
-                 "Note: leading slashes can be omitted in all of the above commands, case does not matter\\. "
-                 "The `!SHUTDOWN` command is an exception: it must be typed exactly like that",
+                 "Note: leading slashes can be omitted in all of the above commands, case does not matter\\. ",
                  parse_mode="MarkdownV2"
     )
 
@@ -176,10 +174,8 @@ def shell(message):
     to_run = cmd_get_rest(message.text)
     run_command_and_notify(message, to_run, shell=True)
 
-@bot.message_handler(func=lambda message: message.text == '!SHUTDOWN')
-#@admins_only_handler  # WARNING: with this line commented out ANYONE can shut the bot down
-def shutdown(message):
-    print("Stopping due to '!SHUTDOWN' received", flush=True)
+def shutdown(_):
+    print("Stopping due to emergency shutdown command received", flush=True)
 
     # Default behavior: stop polling immediately, but the shutdown command might remain in
     # the unprocessed messages on Telegram side, so unless you run after_shutdown.py,
@@ -192,6 +188,11 @@ def shutdown(message):
     # there is a chance that a malicious command will arrive in the one tenth of a second
     # interval.
     #Timer(0.1, bot.stop_polling).start()
+
+if not emergency_shutdown_public:
+    shutdown = admins_only_handler(shutdown)
+bot.register_message_handler(shutdown,
+                             func=lambda message: message.text.strip() == emergency_shutdown_command.strip())
 
 @bot.message_handler(func=lambda message: True)
 def unknown(message):

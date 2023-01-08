@@ -71,21 +71,21 @@ accounts gets compromised, it is possible to perform the emergency shutdown.
 
 ### Emergency shutdown
 
-To shut the bot down, any user can send the command `!SHUTDOWN` (exactly like this, in
-upper case with an exclamation mark and no other symbols/whitespaces/etc). Note that this
-will prevent the bot from accepting new requests (the script will exit and it won't resume
-until you restart it manually), but the child processes executed by previous requests won't
-be killed.
+To shut the bot down, user must send the command that they define in the config.py file.
+Unlike other commands, this command must exactly match the configured string
+(e.g. lowercase/capital letters mismatch are not allowed), except for the leading and trailing
+whitespaces (they are ignored). This will prevent the bot from accepting new requests
+(the bot will exit and it won't resume until you restart it manually), but the child processes
+started by previous requests won't be killed.
 
-Note that it is perfectly fine to stop the bot with a usual keyboard interrupt. The
-`!SHUTDOWN` command is intended for a case of emergency.
+It is also possible (and recommended) to configure the bot to accept the emergency shutdown
+command from all users, not just the admins. This is useful in case an admin looses access
+to their account to a malicious user.
 
-**WARNING:** by default, **EVERY USER**, not just the admins, is allowed to `!SHUTDOWN` the bot,
-in case you loose access to the admin(s) account(s). If you want to prevent such behavior, go
-to the `main.py` and uncomment the line that contains "with this line commented out ANYONE
-can shut the bot down". If you do so, the command will only remain available to the admins.
+Note that it is perfectly fine to stop the bot with a usual keyboard interrupt. The shutdown
+command is intended for a case of emergency.
 
-### After shutdown
+### After emergency shutdown
 
 Even if some commands were sent to the bot _after_ it was stopped, Telegram maintains (for a
 limited time) the queue of messages not yet processed by the bot. So, if when starting the bot
@@ -93,12 +93,12 @@ next time, the malefactor remains in the admins list (e.g. if a real admin accou
 compromised but then restored), the bot _might_ still receive the malicious commands, even if
 the corresponding messages were deleted.
 
-Besides, it is possible that the `!SHUTDOWN` command itself is not marked as processed
+Besides, it is possible that the emergency shutdown command itself is not marked as processed
 (because the bot tries to stop itself ASAP), so it might receive this command again when
 runned next time (and, therefore, exit immediately).
 
-Thus, it is recommended to run `after_shutdown.py` after you `!SHUTDOWN` the bot before
-you restart it again. It will print all the queued messages (if any) and new incoming
+Thus, it is recommended to run `after_shutdown.py` after emergency shutdown of the bot before
+it is restarted. It will print all the queued messages (if any) and new incoming
 messages, while it is running, clearing the queue on the Telegram side. After that just stop
 this process and run `main.py` as usually.
 

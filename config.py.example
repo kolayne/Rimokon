@@ -14,3 +14,21 @@ admins_ids = [123, 456]  # List of Telegram user identifiers (integers). Find vi
 # is reread) and then send `/start` command in Telegram (so that the keyboard on your Telegram client
 # is updated)
 quick_access_cmds = [['/key space', '/type Hello, World!'], ['/type This will appear on second line']]
+
+# `emergency_shutdown_command` is a string that can be used for emergency shutdown, intended for
+# the scenario when a malicious user gets access to one of the admins' accounts.
+# If the bot receives a message with this text, it terminates immediately. Notice, that the message
+# text must exactly match the string (including lowercase/capital letters and special symbols),
+# except for the leading and trailing whitespaces (they will be ignored).
+#
+# For example, if the command is set to '/A b123C ', message ' /A b123C' will terminate the bot,
+# while 'A b123C', '/A b123c', or '/Ab123C' won't.
+emergency_shutdown_command = 'YOUR_COMMAND_HERE'
+
+# If `emergency_shutdown_public` is `True`, then **any user**, not just the admins, will be allowed
+# to use the `emergency_shutdown_command`. It is useful in case you loose access to your admin account
+# while the intruder is still there: with this enabled you will be able to terminate the bot from any
+# other account.
+#
+# It is recommended to leave this enabled and keep the emergency shutdown command in secret.
+emergency_shutdown_public = True
