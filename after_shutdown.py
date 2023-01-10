@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Use this script to clear Telegram's cache of messages not yet processed by the bot.
-# This can be useful after `!SHUTDOWN` if malefactor has sent messages with commands
+# This can be useful after emergency shutdown if malefactor has sent messages with commands
 # after you stopped the bot.
 
 import telebot
