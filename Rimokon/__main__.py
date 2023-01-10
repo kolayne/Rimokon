@@ -13,10 +13,10 @@ from io import BytesIO
 import telebot
 from requests.exceptions import RequestException
 
-from util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
-from config import bot_token, admins_ids, emergency_shutdown_command, emergency_shutdown_public
+from .util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
+from .config import bot_token, admins_ids, emergency_shutdown_command, emergency_shutdown_public
 try:
-    from config import quick_access_cmds
+    from .config import quick_access_cmds
 except ImportError:
     quick_access_cmds = []
 
