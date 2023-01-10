@@ -7,8 +7,6 @@ import shlex
 from time import sleep
 from sys import stderr
 from traceback import format_exc
-from PIL import ImageGrab
-from io import BytesIO
 
 import telebot
 from requests.exceptions import RequestException
@@ -134,22 +132,17 @@ def key(message):
     xdotool_key_args = cmd_get_rest(message.text).split()
     run_command_and_notify(message, ['xdotool', 'key'] + xdotool_key_args, expect_quick=True)
 
+# FIXME: everything will be imported from config
+from .plugins.screenshot import screen as p_screen, screenf as p_screenf
+
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['screen', 'screenf'])
 @admins_only_handler
 def screen(message):
-    try:
-        screenshot = ImageGrab.grab()
-    except OSError as e:
-        bot.reply_to(message, f"Error: your machine does not support this feature:\n{e}")
-        return
-    img = BytesIO()
-    img.name = 'i.png'
-    screenshot.save(img, 'PNG')
-    img.seek(0)
+    # FIXME: temporary code to test a plugin prototype
     if cmd_get_action(message.text).endswith('f'):
-        bot.send_document(message.chat.id, img, reply_to_message_id=message.message_id)
+        p_screenf(bot, message, cmd_get_rest(message.text))
     else:
-        bot.send_photo(message.chat.id, img, reply_to_message_id=message.message_id)
+        p_screen(bot, message, cmd_get_rest(message.text))
 
 @bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['run', 'rawrun', 'exec', 'rawexec'])
 @admins_only_handler
