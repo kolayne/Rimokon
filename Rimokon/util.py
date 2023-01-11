@@ -19,15 +19,12 @@ def try_decode_otherwise_repr(s: bytes) -> str:
         return repr(s)
 
 
-def cmd_get_action(s: Optional[str]) -> Optional[str]:
+def cmd_get_action_name(s: Optional[str]) -> Optional[str]:
     """
     Extract action from the command string with optional leading slash
     """
     if s:
-        cmd = s.split()[0]
-        if cmd[0] == '/':
-            cmd = cmd[1:]
-        return cmd.lower()
+        return s.split()[0].lstrip('/').lower()
 
 def cmd_get_rest(s: str) -> str:
     """

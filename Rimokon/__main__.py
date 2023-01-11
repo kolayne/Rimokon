@@ -11,7 +11,7 @@ from traceback import format_exc
 import telebot
 from requests.exceptions import RequestException
 
-from .util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action, cmd_get_rest
+from .util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action_name, cmd_get_rest
 from .config import bot_token, admins_ids, emergency_shutdown_command, emergency_shutdown_public
 try:
     from .config import quick_access_cmds
@@ -80,7 +80,7 @@ def admins_only_handler(original_handler):
         return handler
 
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'start')
+@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'start')
 def start(message: telebot.types.Message):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     # `quick_access_cmds` should be an array of arrays of strings, the latter arrays represent lines
@@ -95,7 +95,7 @@ def start(message: telebot.types.Message):
                  reply_markup=keyboard
     )
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'help')
+@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'help')
 @admins_only_handler
 def help_(message: telebot.types.Message):
     bot.reply_to(message,
@@ -120,34 +120,22 @@ def help_(message: telebot.types.Message):
                  parse_mode="MarkdownV2"
     )
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'type')
+@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'type')
 @admins_only_handler
 def type_(message):
     text_to_type = cmd_get_rest(message.text)
     run_command_and_notify(message, ['xdotool', 'type', text_to_type], expect_quick=True)
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'key')
+@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'key')
 @admins_only_handler
 def key(message):
     xdotool_key_args = cmd_get_rest(message.text).split()
     run_command_and_notify(message, ['xdotool', 'key'] + xdotool_key_args, expect_quick=True)
 
-# FIXME: everything will be imported from config
-from .plugins.screenshot import screen as p_screen, screenf as p_screenf
-
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['screen', 'screenf'])
-@admins_only_handler
-def screen(message):
-    # FIXME: temporary code to test a plugin prototype
-    if cmd_get_action(message.text).endswith('f'):
-        p_screenf(bot, message, cmd_get_rest(message.text))
-    else:
-        p_screen(bot, message, cmd_get_rest(message.text))
-
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) in ['run', 'rawrun', 'exec', 'rawexec'])
+@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) in ['run', 'rawrun', 'exec', 'rawexec'])
 @admins_only_handler
 def run_raw_run(message):
-    action = cmd_get_action(message.text).replace('exec', 'run')
+    action = cmd_get_action_name(message.text).replace('exec', 'run')
     to_run = cmd_get_rest(message.text)
     if action == 'run':
         try:
@@ -161,7 +149,7 @@ def run_raw_run(message):
         assert False, "Neither /run, nor /rawrun. How is that possible?"
     run_command_and_notify(message, to_run)
 
-@bot.message_handler(func=lambda message: cmd_get_action(message.text) == 'shell')
+@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'shell')
 @admins_only_handler
 def shell(message):
     to_run = cmd_get_rest(message.text)
@@ -187,8 +175,22 @@ if not emergency_shutdown_public:
 bot.register_message_handler(shutdown,
                              func=lambda message: message.text.strip() == emergency_shutdown_command.strip())
 
-@bot.message_handler(func=lambda message: True)
-def unknown(message):
+# FIXME: everything will be imported from config
+from .plugins.screenshot import screen as p_screen, screenf as p_screenf
+actions = {
+        'screen': p_screen,
+        'screenf': p_screenf
+}
+
+@bot.message_handler(func=lambda message: True)  # TODO: accept other content types
+@admins_only_handler
+def run_command(message):
+    wanted_action_name = cmd_get_action_name(message.text)
+    command_rest = cmd_get_rest(message.text)
+    for action_name, action_func in actions.items():
+        if wanted_action_name == action_name:
+            Thread(target=action_func, args=(bot, message, command_rest)).start()
+            return
     bot.reply_to(message, "Unknown command")
 
 
