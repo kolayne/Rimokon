@@ -1,22 +1,4 @@
-from typing import List, Optional
-
-
-def escape(where: str, what: List[str]):
-    # If there is a backslash in `what`, it must come first
-    if '\\' in what:
-        what = ['\\'] + [c for c in what if c != '\\']
-
-    for c in what:
-        assert len(c) == 1
-        where = where.replace(c, '\\' + c)
-    return where
-
-
-def try_decode_otherwise_repr(s: bytes) -> str:
-    try:
-        return s.decode()
-    except UnicodeDecodeError:
-        return repr(s)
+# TODO: Move these to __main__.py
 
 
 def cmd_get_action_name(s: Optional[str]) -> Optional[str]:

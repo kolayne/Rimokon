@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 from functools import wraps
-from typing import Union, List
-import subprocess
 from threading import Thread #, Timer
-import shlex
 from time import sleep
 from sys import stderr
 from traceback import format_exc
@@ -11,7 +8,7 @@ from traceback import format_exc
 import telebot
 from requests.exceptions import RequestException
 
-from .util import escape, try_decode_otherwise_repr as try_decode, cmd_get_action_name, cmd_get_rest
+from .util import cmd_get_action_name, cmd_get_rest
 from .config import bot_token, admins_ids, emergency_shutdown_command, emergency_shutdown_public
 try:
     from .config import quick_access_cmds
@@ -20,51 +17,6 @@ except ImportError:
 
 
 bot = telebot.TeleBot(bot_token)
-
-
-def run_command_and_notify(message: telebot.types.Message, args: Union[str, List[str]], *,
-                           expect_quick: bool = False, shell: bool = False):
-    """
-    Creates and starts a new thread, that runs the given command (either in the shell mode or not) and
-    reports the results to the user.
-
-    @param message: Telegram bot message to reply to
-    @param args: String or list of arguments to be executed.
-    @param expect_quick: (optional, default `False`) Whether to expect that the command will
-        finish quickly. If so, bot will only notify the user after it completes, otherwise it
-        will send a temporary message to identify that the command is accepted and running,
-        but not yet finished.
-    @param shell: (optional, default `False`) Whether to run in shell
-    """
-    def f():
-        try:
-            p = subprocess.Popen(args, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-
-            if not expect_quick:
-                sent_message = bot.reply_to(message, "Executing...")
-
-            out, err = map(try_decode, p.communicate())
-            reply_text = "Done\\. Output:\n"  # '.' must be escaped in MarkdownV2
-            if out:
-                reply_text += "stdout:\n```\n" + escape(out, ['\\', '`']) + "\n```\n"
-            if err:
-                reply_text += "stderr:\n```\n" + escape(err, ['\\', '`']) + "\n```\n"
-            reply_text += f"Exit code: {p.returncode}"
-
-            try:
-                bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
-            except telebot.apihelper.ApiTelegramException as e:
-                bot.reply_to(message, f"The command has completed with code {p.returncode}, but I failed "
-                                      f"to send the response:\n{e}")
-            if not expect_quick:
-                # Sending a new message and deleting the old one instead of editing because running a command may
-                # take a long time and we want to notify user when it's over
-                bot.delete_message(message.chat.id, sent_message.message_id)
-        except Exception as e:
-            bot.reply_to(message, f"Something went wrong while processing your request:\n{e}")
-
-    Thread(target=f, daemon=True).start()  # Do all of it in the background
 
 
 # Decorator that prevents the actions when executed by a non-admin user.
@@ -98,6 +50,8 @@ def start(message: telebot.types.Message):
 @bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'help')
 @admins_only_handler
 def help_(message: telebot.types.Message):
+    bot.reply_to(message, 'The version you are running is in the work-in-progress state')
+    '''
     bot.reply_to(message,
                  "Hello\\. I currently have the following commands:\n\n"
                  "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
@@ -119,41 +73,7 @@ def help_(message: telebot.types.Message):
                  "Note: leading slashes can be omitted in all of the above commands, case does not matter\\. ",
                  parse_mode="MarkdownV2"
     )
-
-@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'type')
-@admins_only_handler
-def type_(message):
-    text_to_type = cmd_get_rest(message.text)
-    run_command_and_notify(message, ['xdotool', 'type', text_to_type], expect_quick=True)
-
-@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'key')
-@admins_only_handler
-def key(message):
-    xdotool_key_args = cmd_get_rest(message.text).split()
-    run_command_and_notify(message, ['xdotool', 'key'] + xdotool_key_args, expect_quick=True)
-
-@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) in ['run', 'rawrun', 'exec', 'rawexec'])
-@admins_only_handler
-def run_raw_run(message):
-    action = cmd_get_action_name(message.text).replace('exec', 'run')
-    to_run = cmd_get_rest(message.text)
-    if action == 'run':
-        try:
-            to_run = shlex.split(to_run)
-        except ValueError as e:
-            bot.reply_to(message, f"Failed to parse arguments:\n{e}")
-            return
-    elif action == 'rawrun':
-        to_run = to_run.split()
-    else:
-        assert False, "Neither /run, nor /rawrun. How is that possible?"
-    run_command_and_notify(message, to_run)
-
-@bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'shell')
-@admins_only_handler
-def shell(message):
-    to_run = cmd_get_rest(message.text)
-    run_command_and_notify(message, to_run, shell=True)
+    '''
 
 def shutdown(_):
     print("Stopping due to emergency shutdown command received", flush=True)
@@ -177,9 +97,18 @@ bot.register_message_handler(shutdown,
 
 # FIXME: everything will be imported from config
 from .plugins.screenshot import screen as p_screen, screenf as p_screenf
+from .plugins.run_rawrun_shell import run, rawrun, shell, run_parsed_command
 actions = {
+        'run': run,
+        'rawrun': rawrun,
+        'shell': shell,
         'screen': p_screen,
-        'screenf': p_screenf
+        'screenf': p_screenf,
+
+        # Simple alias (will be represented as string a string alias):
+        'key': lambda bot, msg, rest: rawrun(bot, msg, 'xdotool key ' + rest, notify=False),
+        # Complex alias:
+        'type': lambda bot, msg, rest: run_parsed_command(bot, msg, ['xdotool', 'type', rest], notify=False)
 }
 
 @bot.message_handler(func=lambda message: True)  # TODO: accept other content types
