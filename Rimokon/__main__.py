@@ -9,11 +9,10 @@ import telebot
 from requests.exceptions import RequestException
 
 from .util import cmd_get_action_name, cmd_get_rest
-from .config import bot_token, admins_ids, emergency_shutdown_command, emergency_shutdown_public
-try:
-    from .config import quick_access_cmds
-except ImportError:
-    quick_access_cmds = []
+from .import_config import bot_token, admins_ids, \
+        emergency_shutdown_command, emergency_shutdown_public, \
+        quick_access_cmds, \
+        unified_actions
 
 
 bot = telebot.TeleBot(bot_token)
@@ -95,28 +94,12 @@ if not emergency_shutdown_public:
 bot.register_message_handler(shutdown,
                              func=lambda message: message.text.strip() == emergency_shutdown_command.strip())
 
-# FIXME: everything will be imported from config
-from .plugins.screenshot import screen as p_screen, screenf as p_screenf
-from .plugins.run_rawrun_shell import run, rawrun, shell, run_parsed_command
-actions = {
-        'run': run,
-        'rawrun': rawrun,
-        'shell': shell,
-        'screen': p_screen,
-        'screenf': p_screenf,
-
-        # Simple alias (will be represented as string a string alias):
-        'key': lambda bot, msg, rest: rawrun(bot, msg, 'xdotool key ' + rest, notify=False),
-        # Complex alias:
-        'type': lambda bot, msg, rest: run_parsed_command(bot, msg, ['xdotool', 'type', rest], notify=False)
-}
-
 @bot.message_handler(func=lambda message: True)  # TODO: accept other content types
 @admins_only_handler
 def run_command(message):
     wanted_action_name = cmd_get_action_name(message.text)
     command_rest = cmd_get_rest(message.text)
-    for action_name, action_func in actions.items():
+    for action_name, action_func in unified_actions.items():
         if wanted_action_name == action_name:
             Thread(target=action_func, args=(bot, message, command_rest)).start()
             return

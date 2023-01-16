@@ -32,3 +32,42 @@ emergency_shutdown_command = 'YOUR_COMMAND_HERE'
 #
 # It is recommended to leave this enabled and keep the emergency shutdown command in secret.
 emergency_shutdown_public = True
+
+
+# The following parameters `actions` and `aliases` define the actions your Rimokon instance will be able
+# to perform. To enable them, import the action functions from plugins and add them to the following
+# dictionaries.
+
+from .plugins.run_rawrun_shell import run, rawrun, shell, run_parsed_command
+from .plugins.screenshot import screen, screenf
+
+# This dictionary specifies a mapping from action name (i.e. the command that the user will use) to the
+# action function (it will be given positional arguments: `telebot.TeleBot` object to interact with user,
+# `telebot.types.Message` object corresponding to the received message, in case it needs any metadata,
+# and an `str` with the rest of the command (i.e. part after the action name)).
+actions = {
+    'run': run,
+    'rawrun': rawrun,
+    'shell': shell,
+    'screen': screen,
+    'screenf': screenf
+}
+
+# Aliases complement the set of actions. Here users can specify their commands that are based on the
+# plugins' functionalities. Aliases may be of two types: string (simple) aliases and
+# callable (complex) aliases. They are explained in more detail below. These examples rely on the
+# `xdotool` utility installed (which is well suited for Xorg, but you may want to use another one,
+# such as `ydotool`, which works on both Xorg and Wayland).
+aliases = {
+    # A "simple alias" (or "string alias") just expands the given action name in the beginning of the
+    # received commands to the value. Notice that it is interpreted just like other action names,
+    # i.e. letters lower/upper case or trailing slashes do not matter.
+    # For this alias, for example, a command "/Key 123 key 456" is expanded to "Run xdotool key 123 key 456".
+    'key': 'Run xdotool key',
+
+    # A "complex alias" (or "callable alias") takes the same form as an `actions` entry. It works exactly
+    # the same way and there is no technical difference whether it is defined as an alias or an action.
+    # There is only logical difference: the `actions` dictionary is intended for enabling plugins, while
+    # the `aliases` dictionary is for user-defined actions.
+    'type': lambda bot, msg, rest: run_parsed_command(bot, msg, ['xdotool', 'type', rest], notify=False)
+}
