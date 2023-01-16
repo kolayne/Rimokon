@@ -1,16 +1,24 @@
-# TODO: Move these to __main__.py
+from typing import Optional
 
 
 def cmd_get_action_name(s: Optional[str]) -> Optional[str]:
     """
-    Extract action from the command string with optional leading slash
+    Extract action name from a command string with, optionally, leading spaces followed by leading slashes.
     """
     if s:
-        return s.split()[0].lstrip('/').lower()
+        return s.lstrip().lstrip('/').split()[0].lower()
 
-def cmd_get_rest(s: str) -> str:
+def cmd_get_rest(s: str, cut_first_whitespace: bool = True) -> str:
     """
-    Cuts the first word of the string and the first whitespace symbol
-    after it, returns the rest
+    Cut the first word of the string and (optionally, default) the first whitespace symbol after it.
+    Return the rest.
     """
-    return s[len(s.split()[0])+1:]
+    s = s.lstrip()
+    try:
+        i = s.index(' ')
+    except ValueError:
+        return ''
+
+    if cut_first_whitespace:
+        i += 1
+    return s[i:]
