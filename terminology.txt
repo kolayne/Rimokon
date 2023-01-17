@@ -1,5 +1,0 @@
-Temp, to be moved to readme/wikis/...
-
-Plugin - a python package (in a single- or multi-file form) put in the Rimokon/plugins directory;
-Action - a functionality provided by a plugin consisting of a name (action name) and a function (action function / actuator). Command that contains action name triggers the corresponding action function.
-Command - text of a recieved message. It consists of the first word, which is interpreted as an action name, and the rest of the command.
