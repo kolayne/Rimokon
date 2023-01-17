@@ -12,9 +12,17 @@ from .config import bot_token, admins_ids, \
         actions, aliases
 
 
+logger = logging.getLogger('Rimokon')
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter(
+    fmt='%(asctime)s %(levelname)s\t%(message)s', datefmt="%d.%m.%Y %H:%M:%S"))
+logger.addHandler(_handler)
+del _handler  # Make unimportable
+
+
 def die(*args):
     # TODO: use logger object
-    logging.critical(*args)
+    logger.critical(*args)
     exit(1)
 
 def canonicalize_key_or_die(k_: str) -> str:
@@ -32,7 +40,7 @@ def canonicalize_key_or_die(k_: str) -> str:
 updated_actions = {}
 
 for k_, v in actions.items():
-    logging.debug('Processing action %s', repr(k_))
+    logger.debug('Processing action %s', repr(k_))
     k = canonicalize_key_or_die(k_)
     if k in updated_actions.keys():
         die('Attempt to redefine action %s (in `config.actions`)', repr(k))
@@ -51,7 +59,7 @@ def complex_alias_from_string(base_action_func, prepended_string):
         # symbol from the message text.
         new_rest = prepended_string + cmd_get_rest(msg.text, False)
 
-        logging.debug('String alias triggered. Message text: %s; prepended string: %s; '
+        logger.debug('String alias triggered. Message text: %s; prepended string: %s; '
                       'resulting (new) rest: %s',
                       repr(msg.text), repr(prepended_string), repr(new_rest))
 
@@ -63,7 +71,7 @@ def complex_alias_from_string(base_action_func, prepended_string):
 updated_aliases = {}
 
 for k_, v_ in aliases.items():
-    logging.debug('Processing alias %s', repr(k_))
+    logger.debug('Processing alias %s', repr(k_))
     k = canonicalize_key_or_die(k_)
     if k in updated_aliases.keys():
         die('Attempt to redefine alias %s (in `config.aliases`)', repr(k))
@@ -90,6 +98,5 @@ unified_actions = {**updated_actions, **updated_aliases}
 del actions, aliases, updated_actions, updated_aliases
 
 
-# When executed as a script, behave as a config checker
-if __name__ == "__main__":
-    print("Config file imported successfully")
+# When executed as a script, behave as a config checker. Otherwise just notify of success
+(print if __name__ == "__main__" else logger.info)("Successfully imported the config file")

@@ -34,6 +34,11 @@ emergency_shutdown_command = 'YOUR_COMMAND_HERE'
 emergency_shutdown_public = True
 
 
+# Optional: set logging level
+#import logging
+#logging.getLogger('Rimokon').setLevel(logging.DEBUG)
+
+
 # The following parameters `actions` and `aliases` define the actions your Rimokon instance will be able
 # to perform. To enable them, import the action functions from plugins and add them to the following
 # dictionaries.
