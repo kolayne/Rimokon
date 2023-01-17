@@ -55,6 +55,7 @@ def run_parsed_command(bot: TeleBot, message: Message, command: Union[str, List[
 
 @help_description("<COMMAND> Run the command in a shell")
 def shell(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
+    # pylint: disable=unexpected-keyword-arg
     run_parsed_command(bot, message, command_rest, shell=True, notify=notify)
 
 @help_description("<COMMAND> Run the command outside of shell (arguments quoting and escaping is supported)")
@@ -64,9 +65,11 @@ def run(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = Tru
     except ValueError as e:
         bot.reply_to(message, f"Failed to parse arguments:\n{e}")
     else:
+        # pylint: disable=unexpected-keyword-arg
         run_parsed_command(bot, message, command, notify=notify)
 
 @help_description("<COMMAND> Run the command outside of shell (quote and backslash symbols have no "
                   "special meaning)")
 def rawrun(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
+    # pylint: disable=unexpected-keyword-arg
     run_parsed_command(bot, message, command_rest.split(), notify=notify)
