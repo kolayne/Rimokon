@@ -4,6 +4,7 @@ bring them to the common form and make it easy to use them.
 """
 
 import logging
+from functools import wraps
 
 from .util import cmd_get_action_name, cmd_get_rest
 from .config import bot_token, admins_ids, \
@@ -37,6 +38,24 @@ def canonicalize_key_or_die(k_: str) -> str:
     return k
 
 
+def make_action_noexcept(action_func):
+    @wraps(action_func)
+    def noexcept_action_func(bot, message, *args, **kwargs):
+        try:
+            return action_func(bot, message, *args, **kwargs)
+        except Exception as e:
+            # Logger functions must never ever raise exceptions, right? It should be safe to use them
+            # outside of the try block.
+            logger.exception('Exception occurred while handling the command %s', message.text)
+            try:
+                bot.reply_to(message, f"Something went wrong while processing your request:\n{e}")
+            except Exception:
+                logger.exception('Failed to notify user of the above problem')
+            else:
+                logger.info('Successfully notified user of the above problem')
+    return noexcept_action_func
+
+
 updated_actions = {}
 
 for k_, v in actions.items():
@@ -46,7 +65,7 @@ for k_, v in actions.items():
         die('Attempt to redefine action %s (in `config.actions`)', repr(k))
     if not callable(v):
         die('The action function specified by key %s is not callable', repr(k_))
-    updated_actions[k] = v
+    updated_actions[k] = make_action_noexcept(v)
 
 
 def complex_alias_from_string(base_action_func, prepended_string):
@@ -89,7 +108,7 @@ for k_, v_ in aliases.items():
         v = v_
     else:
         die('The alias %s specifies neither a string nor a callable object', repr(k_))
-    updated_aliases[k] = v
+    updated_aliases[k] = make_action_noexcept(v)
 
 
 unified_actions = {**updated_actions, **updated_aliases}
