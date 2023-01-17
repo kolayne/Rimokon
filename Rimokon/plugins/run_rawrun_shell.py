@@ -6,7 +6,7 @@ from telebot import TeleBot
 from telebot.types import Message
 from telebot.apihelper import ApiTelegramException
 
-from .plugin_helpers import notify_of_execution_conditionally
+from .plugin_helpers import notify_of_execution_conditionally, help_description
 
 
 __all__ = ['shell', 'run', 'rawrun', 'run_parsed_command']
@@ -53,9 +53,11 @@ def run_parsed_command(bot: TeleBot, message: Message, command: Union[str, List[
         bot.reply_to(message, f"The command has completed with code {p.returncode}, but I failed "
                               f"to send the response:\n{e}")
 
+@help_description("<COMMAND> Run the command in a shell")
 def shell(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
     run_parsed_command(bot, message, command_rest, shell=True, notify=notify)
 
+@help_description("<COMMAND> Run the command outside of shell (arguments quoting and escaping is supported)")
 def run(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
     try:
         command = shlex_split(command_rest)
@@ -64,5 +66,7 @@ def run(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = Tru
     else:
         run_parsed_command(bot, message, command, notify=notify)
 
+@help_description("<COMMAND> Run the command outside of shell (quote and backslash symbols have no "
+                  "special meaning)")
 def rawrun(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
     run_parsed_command(bot, message, command_rest.split(), notify=notify)

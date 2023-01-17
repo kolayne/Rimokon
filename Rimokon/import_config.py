@@ -7,6 +7,7 @@ import logging
 from functools import wraps
 
 from .util import cmd_get_action_name, cmd_get_rest
+from .plugins.plugin_helpers import help_description
 from .config import bot_token, admins_ids, \
         quick_access_cmds, \
         emergency_shutdown_command, emergency_shutdown_public, \
@@ -68,11 +69,14 @@ for k_, v in actions.items():
     updated_actions[k] = make_action_noexcept(v)
 
 
-def complex_alias_from_string(base_action_func, prepended_string):
+def complex_alias_from_string(base_action_func, alias_command):
     """
     Construct the action function for a string alias, given its base action function and the
-    prepended string for the command.
+    alias value command.
     """
+    prepended_string = cmd_get_rest(alias_command)
+
+    @help_description(f"Alias for {alias_command}")
     def new_action_func(bot, msg, _rest):
         # Using `cmd_get_rest(msg.text, ...)` instead of `_rest` to preserve the whitespace
         # symbol from the message text.
@@ -103,7 +107,7 @@ for k_, v_ in aliases.items():
                 'Note that aliases for aliases are not supported', repr(k_), repr(base_plugin))
         base_action_func = updated_actions[base_plugin]
 
-        v = complex_alias_from_string(base_action_func, cmd_get_rest(v_))
+        v = complex_alias_from_string(base_action_func, v_)
     elif callable(v_):
         v = v_
     else:
@@ -115,6 +119,26 @@ unified_actions = {**updated_actions, **updated_aliases}
 
 # Make the old intermediate values unimportable
 del actions, aliases, updated_actions, updated_aliases
+
+
+# Form the /help text
+logger.debug('Building /help message')
+help_text = 'Here is the list of actions available:\n\n'
+for action_name, action_func in unified_actions.items():
+    if hasattr(action_func, 'RimokonHelp'):
+        description = action_func.RimokonHelp
+    elif getattr(action_func, '__doc__', None) is not None:
+        # If no help is explicitly defined, take the first line from the docstring
+        description = action_func.__doc__.split('\n')[0]
+    else:
+        description = '[no description]'
+    help_text += f'/{action_name} {description}\n\n'
+help_text = help_text[:-2]
+
+if len(help_text) > 4096:  # Telegram API limitation
+    help_text = 'The help message is too large for a Telegram message'
+    logger.warning('The generated /help message exceeds the maximum Telegram message size. '
+                   'File an issue at https://github.com/kolayne/Rimokon/issues')
 
 
 # When executed as a script, behave as a config checker. Otherwise just notify of success

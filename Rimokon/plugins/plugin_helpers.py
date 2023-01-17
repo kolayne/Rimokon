@@ -5,6 +5,37 @@ from telebot import TeleBot
 from telebot.types import Message
 
 
+def with_help_description(f: Callable, help_message: str) -> Callable:
+    """
+    Sets the message `help_message` to be displayed for the action function `f` in the bot's /help.
+    Modifies the input function and returns it.
+
+    Example:
+
+    def echo_action_function(bot: telebot.TeleBot, msg: telebot.types.Message, rest: str):
+        bot.reply_to(msg, rest)
+    with_help_description(echo_action_function, "Replies with the rest of the message after the action name")
+    """
+    setattr(f, 'RimokonHelp', help_message)
+    return f
+
+def help_description(help_message: str):
+    """
+    Add message corresponding to this action to display in the bot's /help.
+    Modifies the input function and returns it.
+
+    Example:
+
+    @help_description("Replies with the rest of the message after the action name")
+    def echo_action_function(bot: telebot.TeleBot, msg: telebot.types.Message, rest: str):
+        bot.reply_to(msg, rest)
+
+    """
+    def decorate(f: Callable) -> Callable:
+        return with_help_description(f, help_message)
+    return decorate
+
+
 def _run_notified(f, bot, message, args, kwargs):
     sent_message = bot.reply_to(message, "Executing...")
     try:

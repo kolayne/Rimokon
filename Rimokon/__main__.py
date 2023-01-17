@@ -12,7 +12,12 @@ from .util import cmd_get_action_name, cmd_get_rest
 from .import_config import bot_token, admins_ids, \
         emergency_shutdown_command, emergency_shutdown_public, \
         quick_access_cmds, \
-        unified_actions
+        unified_actions, help_text
+
+
+hello_text = ("Hello! I am リモコン (pronounced \"rimokon\", japanese for \"remote control\") "
+              "and I let my admins control the device I am running on. The available actions are "
+              "listed under /help")
 
 
 bot = telebot.TeleBot(bot_token)
@@ -33,46 +38,21 @@ def admins_only_handler(original_handler):
 
 @bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'start')
 def start(message: telebot.types.Message):
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    # `quick_access_cmds` should be an array of arrays of strings, the latter arrays represent lines
-    # of buttons
-    for line in quick_access_cmds:
-        keyboard.add(*line)
+    if message.chat.id in admins_ids:
+        keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+        # `quick_access_cmds` should be an array of arrays of strings, the latter arrays represent lines
+        # of buttons
+        for line in quick_access_cmds:
+            keyboard.add(*line)
+    else:
+        keyboard = None
 
-    bot.reply_to(message,
-                 "Hello! I am リモコン (pronounced \"rimokon\", japanese for \"remote control\") "
-                 "and I let my admins control the device I am running on. Click /help to "
-                 "learn more",
-                 reply_markup=keyboard
-    )
+    bot.reply_to(message, hello_text, reply_markup=keyboard)
 
 @bot.message_handler(func=lambda message: cmd_get_action_name(message.text) == 'help')
 @admins_only_handler
 def help_(message: telebot.types.Message):
-    bot.reply_to(message, 'The version you are running is in the work-in-progress state')
-    '''
-    bot.reply_to(message,
-                 "Hello\\. I currently have the following commands:\n\n"
-                 "*\\(\\*\\)* /type _STRING_ \\- Type _STRING_ on keyboard\n\n"
-                 "*\\(\\*\\)* /key \\[_ARGS_\\] _KEYS_ \\[_KEYS_\\.\\.\\.\\] \\- Generate keypress event for "
-                 "key \\(e\\.g\\. `space`\\), shortcut \\(e\\.g\\. `ctrl+w`\\), or a sequence of them "
-                 "\\(separated with spaces, e\\.g\\. `ctrl+w space`\\)\\. Additional arguments are forwarded "
-                 "to `xdotool key`\n\n"
-                 "*\\(\\*\\*\\)* /screen \\- Capture screen and send the screenshot as a photo\n\n"
-                 "*\\(\\*\\*\\)* /screenf \\- Capture screen and send the screenshot as a document\n\n"
-                 "/run _COMMAND ARGS_ \\- execute _COMMAND_ with command\\-line whitespace\\-sparated "
-                    "arguments _ARGS_\\. Arguments can be quoted and escaped with backslashes\n\n"
-                 "/rawrun _COMMAND ARGS_ \\- similar to /run, but escaping and quoting are not supported, "
-                    "the string is interpreted as raw\n\n"
-                 "/shell _STRING_ \\- execute _STRING_ in a shell\n\n"
-                 "The emergency shutdown command that you have set in the config file will terminate the "
-                    "bot\\.\n\n"
-                 "*\\(\\*\\)* These commands only work with `xdotool` \n\n"
-                 "*\\(\\*\\*\\)* These commands are guaranteed to work on Windows, macOS or Linux with X11\n\n"
-                 "Note: leading slashes can be omitted in all of the above commands, case does not matter\\. ",
-                 parse_mode="MarkdownV2"
-    )
-    '''
+    bot.reply_to(message, help_text)
 
 def shutdown(_):
     print("Stopping due to emergency shutdown command received", flush=True)
