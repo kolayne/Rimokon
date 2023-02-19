@@ -7,8 +7,8 @@ admins_ids = [123, 456]  # List of Telegram user identifiers (integers). Find vi
 # It is an array of arrays of strings. Second-level arrays represent lines of keyboard (top-to-bottom),
 # strings in them are the commands for the keyboard.
 #
-# `quick_access_cmds` can be empty (or completely omitted in the config), but its subarrays and the strings
-# in them must not be empty.
+# `quick_access_cmds` can be empty (resulting in no keyboard) but its subarrays and
+# the strings in them must not be empty.
 #
 # After you update `quick_access_cmds` in the config, you should restart the bot (so that the config file
 # is reread) and then send `/start` command in Telegram (so that the keyboard on your Telegram client
@@ -25,13 +25,13 @@ quick_access_cmds = [['/key space', '/type Hello, World!'], ['/type This will ap
 # while 'A b123C', '/A b123c', or '/Ab123C' won't.
 emergency_shutdown_command = 'YOUR_COMMAND_HERE'
 
-# If `emergency_shutdown_public` is `True`, then **any user**, not just the admins, will be allowed
+# If `emergency_shutdown_is_public` is `True`, then **any user**, not just the admins, will be allowed
 # to use the `emergency_shutdown_command`. It is useful in case you loose access to your admin account
 # while the intruder is still there: with this enabled you will be able to terminate the bot from any
 # other account.
 #
 # It is recommended to leave this enabled and keep the emergency shutdown command in secret.
-emergency_shutdown_public = True
+emergency_shutdown_is_public = True
 
 
 # Optional: set logging level
@@ -66,7 +66,7 @@ actions = {
 aliases = {
     # A "simple alias" (or "string alias") just expands the given action name in the beginning of the
     # received commands to the value. Notice that it is interpreted just like other action names,
-    # i.e. letters lower/upper case or trailing slashes do not matter.
+    # i.e. letters lower/upper case or leading slashes do not matter.
     # For this alias, for example, a command "/Key 123 key 456" is expanded to "Run xdotool key 123 key 456".
     'key': 'Run xdotool key',
 

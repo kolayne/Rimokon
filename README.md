@@ -16,8 +16,8 @@ The current readme is mainly outdated.
 
 
 -  Copy `Rimokon/config.py.example` to `Rimokon/config.py` and modify it according to your use case.
-   Optionally, install `xdotool`/`ydotool` or a similar utility for graphics interaction.
-   Use [@BotFather
+   Optionally, install `xdotool`/`ydotool` or a similar utility for keyboard manipulations.
+   Use [@BotFather](https://t.me/BotFather) to acquire a Telegram bot token.
 
 
 -  Run the bot as a python package: `python3 -m Rimokon` or, from another directory,

@@ -10,7 +10,7 @@ def cmd_get_action_name(s: Optional[str]) -> Optional[str]:
 
 def cmd_get_rest(s: str, cut_first_whitespace: bool = True) -> str:
     """
-    Cut the first word of the string and (optionally, default) the first whitespace symbol after it.
+    Cut the first word of the string and, optionally, the first whitespace symbol after it (default).
     Return the rest.
     """
     s = s.lstrip()

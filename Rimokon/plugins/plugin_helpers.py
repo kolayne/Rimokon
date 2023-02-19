@@ -64,8 +64,11 @@ def notify_of_execution_conditionally(f: Callable[[TeleBot, Message, ...], Any])
 
     Modifes an action function (which accepts `telebot.TeleBot` and `telebot.Message` as its
     first position arguments) such that an additional kw-only argument `notify` is added to
-    the function. If it is `True` (default), the behavior is the same with `notify_of_execution`;
-    if it is `False`, the behavior is as if the function was unmodified
+    the function. If it is `True` (default), the user will be notified of execution,
+    as with `notify_of_execution`. If it is `False`, the behavior is as if the original
+    function was called.
+
+    The underlying function never receives the `notify` keyword argument.
     """
     @wraps(f)
     def decorated(bot: TeleBot, message: Message, *args, notify: bool = True, **kwargs):

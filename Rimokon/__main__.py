@@ -10,7 +10,7 @@ from requests.exceptions import RequestException
 
 from .util import cmd_get_action_name, cmd_get_rest
 from .import_config import bot_token, admins_ids, \
-        emergency_shutdown_command, emergency_shutdown_public, \
+        emergency_shutdown_command, emergency_shutdown_is_public, \
         quick_access_cmds, \
         unified_actions, help_text
 
@@ -24,7 +24,7 @@ bot = telebot.TeleBot(bot_token)
 
 
 # Decorator that prevents the actions when executed by a non-admin user.
-# Must be specified UNDER the `@bot.*_handler` decorator (must be applied before it)
+# MUST be specified UNDER the `@bot.*_handler` decorator (that is, applied BEFORE it)
 def admins_only_handler(original_handler):
         @wraps(original_handler)
         def handler(message, *args, **kwargs):
@@ -69,7 +69,7 @@ def shutdown(_):
     # interval.
     #Timer(0.1, bot.stop_polling).start()
 
-if not emergency_shutdown_public:
+if not emergency_shutdown_is_public:
     shutdown = admins_only_handler(shutdown)
 bot.register_message_handler(shutdown,
                              func=lambda message: message.text.strip() == emergency_shutdown_command.strip())

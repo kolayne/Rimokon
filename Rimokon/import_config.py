@@ -1,6 +1,11 @@
 """
 This file imports the user-defined config.py file and processes all the entries to
-bring them to the common form and make it easy to use them.
+bring them to the common form and make it easy to use them further in the rest of the code.
+
+Running this module (as `python3 -m Rimokon.import_config`) can be used to check the config
+file for validity. Note, however, that the checks performed here are not comprehensive.
+In particular, it is not checked whether the functions specified as actions/aliases
+accept the correct set of arguments (they are only checked for being callable).
 """
 
 import logging
@@ -10,7 +15,7 @@ from .util import cmd_get_action_name, cmd_get_rest
 from .plugins.plugin_helpers import help_description
 from .config import bot_token, admins_ids, \
         quick_access_cmds, \
-        emergency_shutdown_command, emergency_shutdown_public, \
+        emergency_shutdown_command, emergency_shutdown_is_public, \
         actions, aliases
 
 
@@ -23,15 +28,14 @@ del _handler  # Make unimportable
 
 
 def die(*args):
-    # TODO: use logger object
     logger.critical(*args)
     exit(1)
 
 def canonicalize_key_or_die(k_: str) -> str:
     """
-    Bring the key to the lowercase stripped and slash-stripped form.
+    Bring the key to lowercase, strip whitespaces and remove leading slashes.
 
-    If the given name is not a valid action name print the error message and terminate the program.
+    If the given name is not a valid action name, print the error message and terminate the program.
     """
     k = k_.strip().lstrip('/').lower()
     if any(c.isspace() for c in k):
@@ -66,6 +70,8 @@ for k_, v in actions.items():
         die('Attempt to redefine action %s (in `config.actions`)', repr(k))
     if not callable(v):
         die('The action function specified by key %s is not callable', repr(k_))
+    # Note: the above checks are not comprehensive, as the function isn't ensured to
+    # accept the correct set of parameters.
     updated_actions[k] = make_action_noexcept(v)
 
 
@@ -97,21 +103,24 @@ for k_, v_ in aliases.items():
     logger.debug('Processing alias %s', repr(k_))
     k = canonicalize_key_or_die(k_)
     if k in updated_aliases.keys():
-        die('Attempt to redefine alias %s (in `config.aliases`)', repr(k))
+        die('Attempt to redefine an alias %s (in `config.aliases`)', repr(k_))
     if k in updated_actions.keys():
-        die('Alias %s attempts to overwrite an existing action', repr(k_))
+        die('Attempt to overwrite an existing action by alias %s (in `config.aliases`)',
+            repr(k_))
     if isinstance(v_, str):
-        base_plugin = cmd_get_action_name(v_)
-        if base_plugin not in updated_actions.keys():
+        base_action_name = cmd_get_action_name(v_)
+        if base_action_name not in updated_actions.keys():
             die('Alias %s relies on the action %s which does not exist. '
-                'Note that aliases for aliases are not supported', repr(k_), repr(base_plugin))
-        base_action_func = updated_actions[base_plugin]
+                'Note that aliases for aliases are not supported', repr(k_), repr(base_action_name))
+        base_action_func = updated_actions[base_action_name]
 
         v = complex_alias_from_string(base_action_func, v_)
     elif callable(v_):
         v = v_
     else:
         die('The alias %s specifies neither a string nor a callable object', repr(k_))
+    # Note: the above checks are not comprehensive: in the case `callable(v_)` the function is not
+    # ensured to accept the correct set of parameters.
     updated_aliases[k] = make_action_noexcept(v)
 
 
