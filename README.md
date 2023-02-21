@@ -2,11 +2,6 @@
 
 Telegram bot for simple remote control of the device it is running on.
 
-## Redesign in progress
-
-The current readme is mainly outdated.
-
-
 ## Basic usage
 
 -  Install requirements:
