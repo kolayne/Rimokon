@@ -2,65 +2,47 @@
 
 Telegram bot for simple remote control of the device it is running on.
 
-## Requirements / limitations
+## Basic usage
 
-- To run the bot, on the device you need Python 3 and pip3 and have the libraries
-  installed:
-  ```
-  pip3 install -r requirements.txt
-  ```
+-  Install requirements:
+   ```
+   pip3 install -r requirements.txt
+   ```
 
-- For the graphics-related controls (`/type`, `/key`) to work, you have to be running
-  Xorg (typical for Linux) with the `xdotool` utility installed
 
-- The tool is originally developed for Linux. Shell-related commands for Windows
-  should be working just fine, but graphics-related controls are not supported on
-  Windows. I am not planning to add support for it, but if you wish to, you are
-  welcome! If you implement it, feel free to file a pull request.
+-  Copy `Rimokon/config.py.example` to `Rimokon/config.py` and modify it according to your use case.
+   Optionally, install `xdotool`/`ydotool` or a similar utility for keyboard manipulations.
+   Use [@BotFather](https://t.me/BotFather) to acquire a Telegram bot token.
 
-- For the bot to function you, of course, need to have internet connection. It does
-  not need to be super stable though, because the bot shall automatically reconnect
-  in case of a network issue after a timeout.
 
-## Configuration
+-  Run the bot as a python package: `python3 -m Rimokon` or, from another directory,
+   `python3 -m Path.To.Rimokon.With.Dot.Delimiters`
 
-You must create and fill in the file `config.py`. Use `config.py.example` as an
-example. Refer to comments in it for more details. You will need to register a bot
-and get a token [@BotFather](https://t.me/BotFather) and get your telegram user id
-[@myidbot](https://t.me/myidbot).
 
-## Usage
+## Plugins, actions, and aliases
 
-To start the bot, start `main.py`.
+Plugins are python packages stored under `Rimokon/plugins/`, which export some functions of the
+signature `f(bot: telebot.TeleBot, message: telebot.types.Message, rest: str) -> Any`. It will
+be called with three positional arguments: bot object to perform actions, the message that
+triggered the action, and the string containing the part of the command after the action name.
 
-Supported commands (leading slash can be omitted, lower/upper case do not matter):
-- `/start` - Start the bot, update keyboard on Telegram side
+To enable a package, put it to the `Rimokon/plugins/` directory, import it in your
+`Rimokon/config.py` and include it to the `actions` dictionary.
 
-- `/help` - List available commands (you can find details there)
+Aliases are, roughly speaking, user-defined actions. They may take the form of a string
+(e.g. `'key': 'run xdotool key'` causes commands like `key space` be interpreted like
+`run xdotool key space`) or an action-like function, in which case they behave just like
+the usual actions (e.g. `'echo': lambda bot, msg, rest: bot.reply_to(msg, rest)` will make
+the command `echo 123 456 789` produce the response `123 456 789`).
 
-- `/key [<ARGS>] <KEYS> [<KEYS>...]` (**Xorg only**) - Generate keypress event for a key,
-  a shortcut, or a sequence of them. All the arguments are separated by space and forwarded
-  to `xdotool key`, thus, `<KEYS>` must be valid `xdotool` keysequences, and it is possible
-  to specify additional arguments `<ARGS>` (refer to `xdotool key --help` for details)
+To enable an alias, define it in your `Rimokon/config.py` in the `aliases` dictionary.
 
-- `/type <STRING>` (**Xorg only**) - Type the given text on the keyboard through
-  keyboard events.
 
-- `/screen` (**Windows, macOS or Xorg**) - Take a screenshot and send it as a Telegram
-  photo.
+## Adavnced usage, technical plugins details, ...
 
-- `/screenf` (-||-) - Just like `/screen`, but sends the screenshot as a document.
+More detailed docs are coming (hopefully, soon) in the GitHub wikis... But not yet 😔.
+Meanwhile, feel free to spam in the issues.
 
-- `/run <COMMAND & ARGS SHELL-STYLE>` - run the command without shell but with
-  shell-style arguments splitting (quoting and escaping is supported)
-
-- `/rawrun <COMMAND & ARGS WHITESPACE-SEPARATED>` - run the command without shell
-  and split it by whitespaces, ignoring quotes and backslashes
-
-- `/shell <SHELL COMMAND>` - run the command in shell.
-
-Note: `/exec` and `/rawexec` are synonyms for `/run` and `/rawrun` respectively (for
-backward compatibility).
 
 ## Security
 
@@ -68,6 +50,7 @@ Because this bot allows arbitrary code execution on the device it is running on,
 you should only allow access to it (`admins_ids` in the config file) to trusted accounts.
 Still, should you have any kind of runtime security threat, for example, if one of the admin
 accounts gets compromised, it is possible to perform the emergency shutdown.
+
 
 ### Emergency shutdown
 
@@ -84,6 +67,7 @@ to their account to a malicious user.
 
 Note that it is perfectly fine to stop the bot with a usual keyboard interrupt. The shutdown
 command is intended for a case of emergency.
+
 
 ### After emergency shutdown
 

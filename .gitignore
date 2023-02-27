@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Project-level
-/config.py
+Rimokon/config.py

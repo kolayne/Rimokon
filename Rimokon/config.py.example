@@ -1,0 +1,78 @@
+bot_token = '123456:ABCDEFGHI'  # Telegram bot token from @BotFather
+admins_ids = [123, 456]  # List of Telegram user identifiers (integers). Find via @myidbot
+
+# `quick_access_cmds` represents the keyboard that will be displayed as Telegram keyboard (for quick
+# access to frequently used commands).
+#
+# It is an array of arrays of strings. Second-level arrays represent lines of keyboard (top-to-bottom),
+# strings in them are the commands for the keyboard.
+#
+# `quick_access_cmds` can be empty (resulting in no keyboard) but its subarrays and
+# the strings in them must not be empty.
+#
+# After you update `quick_access_cmds` in the config, you should restart the bot (so that the config file
+# is reread) and then send `/start` command in Telegram (so that the keyboard on your Telegram client
+# is updated)
+quick_access_cmds = [['/key space', '/type Hello, World!'], ['/type This will appear on second line']]
+
+# `emergency_shutdown_command` is a string that can be used for emergency shutdown, intended for
+# the scenario when a malicious user gets access to one of the admins' accounts.
+# If the bot receives a message with this text, it terminates immediately. Notice, that the message
+# text must exactly match the string (including lowercase/capital letters and special symbols),
+# except for the leading and trailing whitespaces (they will be ignored).
+#
+# For example, if the command is set to '/A b123C ', message ' /A b123C' will terminate the bot,
+# while 'A b123C', '/A b123c', or '/Ab123C' won't.
+emergency_shutdown_command = 'YOUR_COMMAND_HERE'
+
+# If `emergency_shutdown_is_public` is `True`, then **any user**, not just the admins, will be allowed
+# to use the `emergency_shutdown_command`. It is useful in case you loose access to your admin account
+# while the intruder is still there: with this enabled you will be able to terminate the bot from any
+# other account.
+#
+# It is recommended to leave this enabled and keep the emergency shutdown command in secret.
+emergency_shutdown_is_public = True
+
+
+# Optional: set logging level
+#import logging
+#logging.getLogger('Rimokon').setLevel(logging.DEBUG)
+
+
+# The following parameters `actions` and `aliases` define the actions your Rimokon instance will be able
+# to perform. To enable them, import the action functions from plugins and add them to the following
+# dictionaries.
+
+from .plugins.run_rawrun_shell import run, rawrun, shell, run_parsed_command
+from .plugins.screenshot import screen, screenf
+
+# This dictionary specifies a mapping from action name (i.e. the command that the user will use) to the
+# action function (it will be given positional arguments: `telebot.TeleBot` object to interact with user,
+# `telebot.types.Message` object corresponding to the received message, in case it needs any metadata,
+# and an `str` with the rest of the command (i.e. part after the action name)).
+actions = {
+    'run': run,
+    'rawrun': rawrun,
+    'shell': shell,
+    'screen': screen,
+    'screenf': screenf
+}
+
+# Aliases complement the set of actions. Here users can specify their commands that are based on the
+# plugins' functionalities. Aliases may be of two types: string (simple) aliases and
+# callable (complex) aliases. They are explained in more detail below. These examples rely on the
+# `xdotool` utility installed (which is well suited for Xorg, but you may want to use another one,
+# such as `ydotool`, which works on both Xorg and Wayland).
+aliases = {
+    # A "simple alias" (or "string alias") just expands the given action name in the beginning of the
+    # received commands to the value. Notice that it is interpreted just like other action names,
+    # i.e. letters lower/upper case or leading slashes do not matter.
+    # For this alias, for example, a command "/Key 123 key 456" is expanded to "Run xdotool key 123 key 456".
+    'key': 'Run xdotool key',
+
+    # A "complex alias" (or "callable alias") takes the same form as an `actions` entry. It works exactly
+    # the same way and there is no technical difference whether it is defined as an alias or an action.
+    # There is only logical difference: the `actions` dictionary is intended for enabling plugins, while
+    # the `aliases` dictionary is for user-defined actions.
+    'type': lambda bot, msg, rest: run_parsed_command(bot, msg, ['xdotool', 'type', rest], notify=False)
+}
