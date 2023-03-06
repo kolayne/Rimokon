@@ -45,7 +45,11 @@ def run_parsed_command(bot: TeleBot, message: Message, command: Union[str, List[
         reply_text += "stdout:\n```\n" + _escape(out, ['\\', '`']) + "\n```\n"
     if err:
         reply_text += "stderr:\n```\n" + _escape(err, ['\\', '`']) + "\n```\n"
-    reply_text += f"Exit code: {p.returncode}"
+
+    if p.returncode >= 0:
+        reply_text += f"Exit code: {p.returncode}"
+    else:  # Negative `.returncode` denotes the POSIX signal which killed the process
+        reply_text += f"Exited due to signal {-p.returncode}"
 
     try:
         bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
