@@ -79,11 +79,11 @@ bot.register_message_handler(shutdown,
 def run_command(message):
     wanted_action_name = cmd_get_action_name(message.text)
     command_rest = cmd_get_rest(message.text)
-    for action_name, action_func in unified_actions.items():
-        if wanted_action_name == action_name:
-            Thread(target=action_func, args=(bot, message, command_rest)).start()
-            return
-    bot.reply_to(message, "Unknown command")
+    action_func = unified_actions.get(wanted_action_name)
+    if action_func is None:
+        bot.reply_to(message, "Unknown command")
+    else:
+        Thread(target=action_func, args=(bot, message, command_rest)).start()
 
 
 if __name__ == "__main__":
