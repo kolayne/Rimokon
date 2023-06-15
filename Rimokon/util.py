@@ -14,10 +14,7 @@ def cmd_get_rest(s: str, cut_first_whitespace: bool = True) -> str:
     Return the rest.
     """
     s = s.lstrip()
-    try:
-        i = s.index(' ')
-    except ValueError:
-        return ''
+    i = len(s.split()[0])
 
     if cut_first_whitespace:
         i += 1
