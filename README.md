@@ -15,8 +15,7 @@ Telegram bot for simple remote control of the device it is running on.
    Use [@BotFather](https://t.me/BotFather) to acquire a Telegram bot token.
 
 
--  Run the bot as a python package: `python3 -m Rimokon` or, from another directory,
-   `python3 -m Path.To.Rimokon.With.Dot.Delimiters`
+-  Run the bot as a python package: `python3 rimokon_main.py`
 
 
 ## Plugins, actions, and aliases
