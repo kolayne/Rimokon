@@ -4,7 +4,7 @@ from shlex import split as shlex_split
 
 from telebot import TeleBot
 from telebot.types import Message
-from telebot.apihelper import ApiTelegramException
+from telebot.apihelper import ApiException
 
 from .plugin_helpers import notify_of_execution_conditionally, help_description
 
@@ -53,7 +53,7 @@ def run_parsed_command(bot: TeleBot, message: Message, command: Union[str, List[
 
     try:
         bot.reply_to(message, reply_text, parse_mode="MarkdownV2")
-    except ApiTelegramException as e:
+    except ApiException as e:
         bot.reply_to(message, f"The command has completed with code {p.returncode}, but I failed "
                               f"to send the response:\n{e}")
 
