@@ -4,11 +4,11 @@ admins_ids = [123, 456]  # List of Telegram user identifiers (integers). Find vi
 # `quick_access_cmds` represents the keyboard that will be displayed as Telegram keyboard (for quick
 # access to frequently used commands).
 #
-# It is an array of arrays of strings. Second-level arrays represent lines of keyboard (top-to-bottom),
-# strings in them are the commands for the keyboard.
+# It is an array of arrays of strings. The arrays represent lines of keyboard (top-to-bottom),
+# strings in them are the commands that will appear in the keyboard.
 #
-# `quick_access_cmds` can be empty (resulting in no keyboard) but its subarrays and
-# the strings in them must not be empty.
+# If `quick_access_cmds` is an empty list, keyboard is not created. If _an element of_
+# `quick_access_cmds` is empty or a string in it is empty, that's an error.
 #
 # After you update `quick_access_cmds` in the config, you should restart the bot (so that the config file
 # is reread) and then send `/start` command in Telegram (so that the keyboard on your Telegram client
@@ -21,7 +21,7 @@ quick_access_cmds = [['/key space', '/type Hello, World!'], ['/type This will ap
 # text must exactly match the string (including lowercase/capital letters and special symbols),
 # except for the leading and trailing whitespaces (they will be ignored).
 #
-# For example, if the command is set to '/A b123C ', message ' /A b123C' will terminate the bot,
+# For example, if the command is set to '/A b123C ', the message ' /A b123C' will terminate the bot,
 # while 'A b123C', '/A b123c', or '/Ab123C' won't.
 emergency_shutdown_command = 'YOUR_COMMAND_HERE'
 
@@ -47,9 +47,7 @@ from .plugins.run_rawrun_shell import run, rawrun, shell, run_parsed_command
 from .plugins.screenshot import screen, screenf
 
 # This dictionary specifies a mapping from action name (i.e. the command that the user will use) to the
-# action function (it will be given positional arguments: `telebot.TeleBot` object to interact with user,
-# `telebot.types.Message` object corresponding to the received message, in case it needs any metadata,
-# and an `str` with the rest of the command (i.e. part after the action name)).
+# action function.
 actions = {
     'run': run,
     'rawrun': rawrun,
@@ -64,9 +62,10 @@ actions = {
 # `xdotool` utility installed (which is well suited for Xorg, but you may want to use another one,
 # such as `ydotool`, which works on both Xorg and Wayland).
 aliases = {
-    # A "simple alias" (or "string alias") just expands the given action name in the beginning of the
-    # received commands to the value. Notice that it is interpreted just like other action names,
-    # i.e. letters lower/upper case or leading slashes do not matter.
+    # A "simple alias" (or "string alias") works much like an alias in your favourite shell: the key string
+    # simply expands to the value string when a command message is processed.
+    # Just like with usual actions, the leading slashes and the letters case (lower/upper) in the alias name
+    # do not matter.
     # For this alias, for example, a command "/Key 123 key 456" is expanded to "Run xdotool key 123 key 456".
     'key': 'Run xdotool key',
 
@@ -74,5 +73,13 @@ aliases = {
     # the same way and there is no technical difference whether it is defined as an alias or an action.
     # There is only logical difference: the `actions` dictionary is intended for enabling plugins, while
     # the `aliases` dictionary is for user-defined actions.
+    #
+    # The function will be called with three positional arguments: a `telebot.TeleBot` object to interact
+    # with user, a `telebot.types.Message` object for the message that initiated actions (to access
+    # metadata), and a `str` object, which is set to the rest of the message text (which followed after the
+    # action name).
+    # In this example, any message with action name "type" will execute the command `xdotool` with
+    # exactly two arguments: literal 'type' and the contents of the received message after the action name
+    # and one whitespace symbol (e.g. for message r'/type  123\4' will run ['xdotool', 'type', r' 123\4']).
     'type': lambda bot, msg, rest: run_parsed_command(bot, msg, ['xdotool', 'type', rest], notify=False)
 }

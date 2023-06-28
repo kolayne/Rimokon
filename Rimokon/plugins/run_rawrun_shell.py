@@ -57,12 +57,12 @@ def run_parsed_command(bot: TeleBot, message: Message, command: Union[str, List[
         bot.reply_to(message, f"The command has completed with code {p.returncode}, but I failed "
                               f"to send the response:\n{e}")
 
-@help_description("<COMMAND> Run the command in a shell")
+@help_description("<COMMAND> Run command in default shell")
 def shell(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
     # pylint: disable=unexpected-keyword-arg
     run_parsed_command(bot, message, command_rest, shell=True, notify=notify)
 
-@help_description("<COMMAND> Run the command outside of shell (arguments quoting and escaping is supported)")
+@help_description("<COMMAND> Run command outside of shell (quoting and escaping is supported)")
 def run(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
     try:
         command = shlex_split(command_rest)
@@ -72,8 +72,7 @@ def run(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = Tru
         # pylint: disable=unexpected-keyword-arg
         run_parsed_command(bot, message, command, notify=notify)
 
-@help_description("<COMMAND> Run the command outside of shell (quote and backslash symbols have no "
-                  "special meaning)")
+@help_description("<COMMAND> Run command outside of shell (split by space, no quoting or escaping)")
 def rawrun(bot: TeleBot, message: Message, command_rest: str, *, notify: bool = True) -> None:
     # pylint: disable=unexpected-keyword-arg
     run_parsed_command(bot, message, command_rest.split(), notify=notify)
