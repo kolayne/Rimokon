@@ -2,21 +2,27 @@
 
 Telegram bot for simple remote control of the device it is running on.
 
-## Basic usage
+## First run
 
--  Install requirements:
+-  Install dependencies:
    ```
    pip3 install -r requirements.txt
    ```
 
 
--  Copy `Rimokon/config.py.example` to `Rimokon/config.py` and modify it according to your use case.
-   Optionally, install `xdotool`/`ydotool` or a similar utility for keyboard manipulations.
-   Use [@BotFather](https://t.me/BotFather) to acquire a Telegram bot token.
+-  Create a Telegram bot via [@BotFather](https://t.me/BotFather) and acquire the API Token.
+
+
+-  Copy `Rimokon/config.py.example` to `Rimokon/config.py` and edit it according to your prefernces.
+   <br>
+   You might want to install `xdotool`/`ydotool` or a similar utility for keyboard manipulations.
 
 
 -  Run the bot as a python package: `python3 -m Rimokon` or, from another directory,
    `python3 -m Path.To.Rimokon.With.Dot.Delimiters`
+
+
+-  Optionally, add Rimokon to system startup.
 
 
 ## Plugins, actions, and aliases
