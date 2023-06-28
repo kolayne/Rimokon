@@ -1,6 +1,8 @@
 # リモコン (Rimokon)
 
-Telegram bot for simple remote control of the device it is running on.
+Highly customizible, expandable (via plugins) Telegram bot that gives **remote access** to the
+device it is running on (both in terms of **shell commands** and interaction with **graphics**,
+for instance, emulating keystrokes).
 
 ## First run
 
