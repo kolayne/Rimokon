@@ -71,17 +71,22 @@ def shutdown(_):
 
 if not emergency_shutdown_is_public:
     shutdown = admins_only_handler(shutdown)
-bot.register_message_handler(shutdown,
-                             func=lambda message: message.text.strip() == emergency_shutdown_command.strip())
+bot.register_message_handler(
+        shutdown,
+        func=lambda message: message.text and message.text.strip() == emergency_shutdown_command.strip()
+)
 
 @bot.message_handler(func=lambda message: True)  # TODO: accept other content types
 @admins_only_handler
 def run_command(message):
     wanted_action_name = cmd_get_action_name(message.text)
+    if wanted_action_name == '':
+        bot.reply_to(message, "Error: empty action name (space after slash?)")
+        return
     command_rest = cmd_get_rest(message.text)
     action_func = unified_actions.get(wanted_action_name)
     if action_func is None:
-        bot.reply_to(message, "Unknown command")
+        bot.reply_to(message, "Error: unknown action name")
     else:
         Thread(target=action_func, args=(bot, message, command_rest)).start()
 

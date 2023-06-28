@@ -66,6 +66,8 @@ updated_actions = {}
 for k_, v in actions.items():
     logger.debug('Processing action %s', repr(k_))
     k = canonicalize_key_or_die(k_)
+    if not k:
+        die('Empty action name is not allowed: %s', repr(k_))
     if k in updated_actions.keys():
         die('Attempt to redefine action %s (in `config.actions`)', repr(k))
     if not callable(v):
@@ -102,6 +104,8 @@ updated_aliases = {}
 for k_, v_ in aliases.items():
     logger.debug('Processing alias %s', repr(k_))
     k = canonicalize_key_or_die(k_)
+    if not k:
+        die('Empty alias name is not allowed: %s', repr(k_))
     if k in updated_aliases.keys():
         die('Attempt to redefine an alias %s (in `config.aliases`)', repr(k_))
     if k in updated_actions.keys():
