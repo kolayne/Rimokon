@@ -86,7 +86,7 @@ def run_command(message):
         Thread(target=action_func, args=(bot, message, command_rest)).start()
 
 
-if __name__ == "__main__":
+def main():
     while True:
         try:
             bot.polling(non_stop=True)
@@ -97,3 +97,7 @@ if __name__ == "__main__":
             print(format_exc(), file=stderr)
             sleep(3)
             print("Restarted\n", file=stderr)
+
+
+if __name__ == "__main__":
+    main()
