@@ -71,8 +71,10 @@ def shutdown(_):
 
 if not emergency_shutdown_is_public:
     shutdown = admins_only_handler(shutdown)
-bot.register_message_handler(shutdown,
-                             func=lambda message: message.text.strip() == emergency_shutdown_command.strip())
+bot.register_message_handler(
+        shutdown,
+        func=lambda message: message.text and message.text.strip() == emergency_shutdown_command.strip()
+)
 
 @bot.message_handler(func=lambda message: True)  # TODO: accept other content types
 @admins_only_handler
