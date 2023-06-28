@@ -18,8 +18,7 @@ Telegram bot for simple remote control of the device it is running on.
    You might want to install `xdotool`/`ydotool` or a similar utility for keyboard manipulations.
 
 
--  Run the bot as a python package: `python3 -m Rimokon` or, from another directory,
-   `python3 -m Path.To.Rimokon.With.Dot.Delimiters`
+-  Ready to run! Use `python3 rimokon_main.py` or just `./rimokon_main.py`.
 
 
 -  Optionally, add Rimokon to system startup.
