@@ -6,8 +6,10 @@ for instance, emulating keystrokes).
 
 ## First run
 
--  Install dependencies:
-   ```
+-  Install dependencies (the use of virtual environment is suggested, as below)
+   ```sh
+   python3 -m venv venv
+   source venv/bin/activate
    pip3 install -r requirements.txt
    ```
 
@@ -20,7 +22,13 @@ for instance, emulating keystrokes).
    You might want to install `xdotool`/`ydotool` or a similar utility for keyboard manipulations.
 
 
--  Ready to run! Use `python3 rimokon_main.py` or just `./rimokon_main.py`.
+-  Ready to run! Start Rimokon with `rimokon_main.py` in the environment with the dependencies
+   you installed.
+
+   If you are already inside the environment, run `python3 rimokon_main.py`. If you are outside
+   the environment, specify the path to the python interpreter inside venv: from the project
+   directory run `venv/bin/python3 rimokon_main.py` or, from another directory, run
+   `path/to/project/venv/bin/python3 path/to/project/rimokon_main.py`.
 
 
 -  Optionally, add Rimokon to system startup.
