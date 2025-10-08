@@ -44,7 +44,7 @@ emergency_shutdown_is_public = True
 # dictionaries.
 
 from .plugins.run_rawrun_shell import run, rawrun, shell, run_parsed_command
-from .plugins.screenshot import screen, screenf
+from .plugins.screenshot import screen_as_photo_with, screen_as_file_with, with_pil
 
 # This dictionary specifies a mapping from action name (i.e. the command that the user will use) to the
 # action function.
@@ -52,8 +52,8 @@ actions = {
     'run': run,
     'rawrun': rawrun,
     'shell': shell,
-    'screen': screen,
-    'screenf': screenf
+    'screen': screen_as_photo_with(with_pil),
+    'screenf': screen_as_file_with(with_pil),
 }
 
 # Aliases complement the set of actions. Here users can specify their commands that are based on the
